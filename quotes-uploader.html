@@ -1,0 +1,81 @@
+<!DOCTYPE html><html>
+<head>
+  <title>Quotes Uploader to Firebase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    input, button {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    #log {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      text-align: left;
+      background-color: rgba(255,255,255,0.1);
+      padding: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🚀 Upload 365 Quotes to Firebase Firestore</h2>
+  <input type="file" id="fileInput" accept="application/json">
+  <br>
+  <button onclick="uploadQuotes()">Upload to Firebase</button>
+  <div id="log"></div>  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+    import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.firebasestorage.app",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    async function uploadQuotes() {
+      const log = document.getElementById('log');
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files.length) return alert('Please select a JSON file first.');
+
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        log.innerText = `Signed in as ${user.email}\n`;
+      } catch (error) {
+        return alert('Sign-in failed: ' + error.message);
+      }
+
+      const file = fileInput.files[0];
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      let count = 0;
+      for (const [date, content] of Object.entries(data)) {
+        await setDoc(doc(db, 'quotes', date), content);
+        log.innerText += `✅ Uploaded for ${date}\n`;
+        count++;
+      }
+
+      log.innerText += `\n🎉 Done! Uploaded ${count} quotes.`;
+    }
+
+    window.uploadQuotes = uploadQuotes;
+  </script></body>
+</html>
