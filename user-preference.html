@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choose Your Interest - AmQuotes</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1e044d, #4b0082);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+    }
+    h2 { margin-bottom: 1rem; }
+    .interests {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .tag {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid white;
+      border-radius: 20px;
+      padding: 0.7rem 1.5rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .tag.selected {
+      background: #ff0080;
+      border-color: #ff0080;
+    }
+    button {
+      margin-top: 2rem;
+      padding: 0.7rem 2rem;
+      background: #25d366;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>💖 तुला काय आवडतं?</h2>
+  <p>कृपया तुमचे आवडते प्रकार निवडा:</p>  <div class="interests" id="interestList">
+    <div class="tag">Romantic Quotes</div>
+    <div class="tag">Love Status</div>
+    <div class="tag">Sad</div>
+    <div class="tag">Motivational</div>
+    <div class="tag">Friendship</div>
+    <div class="tag">Attitude</div>
+    <div class="tag">Breakup</div>
+    <div class="tag">Funny</div>
+  </div><button onclick="savePreferences()">✅ Save & Continue</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUser = null;
+    onAuthStateChanged(auth, user => { if (user) currentUser = user; });
+
+    document.querySelectorAll('.tag').forEach(el => {
+      el.addEventListener('click', () => {
+        el.classList.toggle('selected');
+      });
+    });
+
+    window.savePreferences = async () => {
+      const selected = [...document.querySelectorAll('.tag.selected')].map(e => e.innerText);
+      if (!currentUser) return alert("Please wait, user not signed in");
+
+      try {
+        await setDoc(doc(db, "user_preferences", currentUser.uid), {
+          preferences: selected,
+          timestamp: new Date().toISOString()
+        });
+        window.location.href = "quotes.html";
+      } catch (e) {
+        alert("Error saving preferences: " + e.message);
+      }
+    }
+  </script></body>
+</html>
