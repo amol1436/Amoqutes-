@@ -1,86 +1,184 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>AmoQuotes - Login / Sign Up</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* ...[UI Styles remain unchanged, तुमचंच copy]... */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      flex-direction: column;
+    }.logo {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo img {
+  width: 220px;
+  height: auto;
+}
+
+.form-container {
+  width: 90%;
+  max-width: 360px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.tabs {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.tabs div {
+  cursor: pointer;
+  font-weight: bold;
+  padding-bottom: 5px;
+  border-bottom: 2px solid transparent;
+}
+
+.tabs .active {
+  border-color: #fff;
+}
+
+.form-group {
+  margin: 12px 0;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  outline: none;
+  margin-top: 6px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.primary-btn {
+  background: linear-gradient(to right, #ff0080, #ff8c00);
+  color: white;
+  box-shadow: 0 0 10px #ff0080;
+}
+
+.primary-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 15px #fff;
+}
+
+.outlined-btn {
+  background-color: transparent;
+  border: 2px solid white;
+  color: white;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.outlined-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.google-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+}
+
+.hidden {
+  display: none;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
   </style>
 </head>
 <body>
-
-  <!-- Logo -->
   <div class="logo">
-    <img src="https://raw.githubusercontent.com/amol1436/Amoqutes-/refs/heads/main/file_00000000c64461f7b5f9c9720aee62bd.png"
-         alt="AmoQuotes Logo" />
-  </div>
-
-  <div class="form-container">
+    <img src="https://raw.githubusercontent.com/amol1436/Amoqutes-/refs/heads/main/file_00000000c64461f7b5f9c9720aee62bd.png" alt="AmoQuotes Logo" />
+  </div>  <div class="form-container">
     <div class="tabs">
       <div id="loginTab" class="active" onclick="switchTab('login')">Login</div>
       <div id="signupTab" onclick="switchTab('signup')">Sign Up</div>
-    </div>
-
-    <!-- Login Form -->
-    <div id="loginForm">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="loginEmail" placeholder="Enter email">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPassword" placeholder="Enter password">
-      </div>
-      <button class="primary-btn" onclick="login()">Login</button>
-
-      <button class="outlined-btn" onclick="googleLogin()">
-        <img src="https://www.svgrepo.com/show/475656/google-color.svg"
-             alt="Google" class="google-icon" />
-        Continue with Google
-      </button>
-    </div>
-
-    <!-- Sign Up Form -->
-    <div id="signupForm" class="hidden">
-      <h2>Create Account</h2>
-      <div class="form-group">
-        <label>First Name</label>
-        <input type="text" id="firstName" placeholder="Your first name">
-      </div>
-      <div class="form-group">
-        <label>Last Name</label>
-        <input type="text" id="lastName" placeholder="Your last name">
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="signupEmail" placeholder="Enter email">
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="signupPassword" placeholder="Enter password">
-      </div>
-      <button class="primary-btn" onclick="signUp()">Sign Up</button>
-    </div>
+    </div><div id="loginForm">
+  <div class="form-group">
+    <label>Email</label>
+    <input type="email" id="loginEmail" placeholder="Enter email">
   </div>
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="loginPassword" placeholder="Enter password">
+  </div>
+  <button class="primary-btn" onclick="login()">Login</button>
+  <button class="outlined-btn" onclick="googleLogin()">
+    <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="google-icon" />
+    Continue with Google
+  </button>
+</div>
 
-  <!-- Firebase Script -->
-  <script type="module">
+<div id="signupForm" class="hidden">
+  <h2>Create Account</h2>
+  <div class="form-group">
+    <label>First Name</label>
+    <input type="text" id="firstName" placeholder="Your first name">
+  </div>
+  <div class="form-group">
+    <label>Last Name</label>
+    <input type="text" id="lastName" placeholder="Your last name">
+  </div>
+  <div class="form-group">
+    <label>Email</label>
+    <input type="email" id="signupEmail" placeholder="Enter email">
+  </div>
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="signupPassword" placeholder="Enter password">
+  </div>
+  <button class="primary-btn" onclick="signUp()">Sign Up</button>
+</div>
+
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      GoogleAuthProvider,
-      signInWithPopup
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -97,7 +195,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Sign Up
     window.signUp = async () => {
       const firstName = document.getElementById("firstName").value;
       const lastName = document.getElementById("lastName").value;
@@ -115,13 +212,12 @@
         });
 
         alert("Sign up successful!");
-        window.location.href = "user-preference.html"; // First time always ask preference
+        window.location.href = "user-preference.html";
       } catch (error) {
         alert("Error: " + error.message);
       }
     };
 
-    // Login
     window.login = async () => {
       const email = document.getElementById("loginEmail").value;
       const password = document.getElementById("loginPassword").value;
@@ -143,7 +239,6 @@
       }
     };
 
-    // Google Login
     window.googleLogin = async () => {
       const provider = new GoogleAuthProvider();
       try {
@@ -169,10 +264,7 @@
         alert("Google Login Failed: " + error.message);
       }
     };
-  </script>
-
-  <!-- Tabs Switch -->
-  <script>
+  </script>  <script>
     function switchTab(tab) {
       const loginTab = document.getElementById('loginTab');
       const signupTab = document.getElementById('signupTab');
@@ -191,6 +283,5 @@
         loginForm.classList.add('hidden');
       }
     }
-  </script>
-</body>
+  </script></body>
 </html>
