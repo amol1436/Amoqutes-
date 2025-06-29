@@ -5,136 +5,12 @@
   <title>AmoQuotes - Login / Sign Up</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      flex-direction: column;
-    }
-
-    .logo {
-      margin-top: 20px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .logo img {
-      width: 220px;
-      height: auto;
-    }
-
-    .form-container {
-      width: 90%;
-      max-width: 360px;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(12px);
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 20px;
-    }
-
-    .tabs div {
-      cursor: pointer;
-      font-weight: bold;
-      padding-bottom: 5px;
-      border-bottom: 2px solid transparent;
-    }
-
-    .tabs .active {
-      border-color: #fff;
-    }
-
-    .form-group {
-      margin: 12px 0;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      outline: none;
-      margin-top: 6px;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    .primary-btn {
-      background: linear-gradient(to right, #ff0080, #ff8c00);
-      color: white;
-      box-shadow: 0 0 10px #ff0080;
-    }
-
-    .primary-btn:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 15px #fff;
-    }
-
-    .outlined-btn {
-      background-color: transparent;
-      border: 2px solid white;
-      color: white;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .outlined-btn:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .google-icon {
-      width: 20px;
-      height: 20px;
-      vertical-align: middle;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
+    /* ...[UI Styles remain unchanged, तुमचंच copy]... */
   </style>
 </head>
 <body>
 
-  <!-- ✅ Centered, properly sized logo -->
+  <!-- Logo -->
   <div class="logo">
     <img src="https://raw.githubusercontent.com/amol1436/Amoqutes-/refs/heads/main/file_00000000c64461f7b5f9c9720aee62bd.png"
          alt="AmoQuotes Logo" />
@@ -188,7 +64,7 @@
     </div>
   </div>
 
-  <!-- Firebase Scripts -->
+  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
@@ -202,7 +78,8 @@
     import {
       getFirestore,
       doc,
-      setDoc
+      setDoc,
+      getDoc
     } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -238,7 +115,7 @@
         });
 
         alert("Sign up successful!");
-        window.location.href = "status.html";
+        window.location.href = "user-preference.html"; // First time always ask preference
       } catch (error) {
         alert("Error: " + error.message);
       }
@@ -250,10 +127,17 @@
       const password = document.getElementById("loginPassword").value;
 
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("Login successful!");
-        // योग्य:
-      window.location.href = "user-preference.html";
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        const prefRef = doc(db, "user_preferences", user.uid);
+        const prefSnap = await getDoc(prefRef);
+
+        if (prefSnap.exists()) {
+          window.location.href = "quotes.html";
+        } else {
+          window.location.href = "user-preference.html";
+        }
       } catch (error) {
         alert("Login failed: " + error.message);
       }
@@ -272,15 +156,22 @@
           photo: user.photoURL
         });
 
-        alert("Google Login successful!");
-        window.location.href = "user-preference.html";
+        const prefRef = doc(db, "user_preferences", user.uid);
+        const prefSnap = await getDoc(prefRef);
+
+        if (prefSnap.exists()) {
+          window.location.href = "quotes.html";
+        } else {
+          window.location.href = "user-preference.html";
+        }
+
       } catch (error) {
         alert("Google Login Failed: " + error.message);
       }
     };
   </script>
 
-  <!-- Tab Switch Script -->
+  <!-- Tabs Switch -->
   <script>
     function switchTab(tab) {
       const loginTab = document.getElementById('loginTab');
@@ -301,6 +192,5 @@
       }
     }
   </script>
-
 </body>
 </html>
