@@ -1,92 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Today's Quotes - AmoQuotes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quotes - AmoQuotes</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom, #1e044d, #4b0082);
       color: white;
-      padding: 1rem;
       padding-bottom: 80px;
     }
-
     h2 {
       text-align: center;
-      margin-bottom: 1rem;
+      margin-top: 1rem;
     }
-
     .quote-card {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255,255,255,0.08);
+      margin: 1rem;
+      padding: 1rem;
       border-radius: 15px;
-      padding: 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(8px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
-
-    .quote-card h3 {
-      margin-top: 0;
-      font-size: 18px;
-      color: #ffb6c1;
+    .quote-category {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #ff9de3;
     }
-
-    .quote-card p {
-      font-size: 16px;
-      line-height: 1.5;
+    .quote-text {
+      margin-top: 0.5rem;
+      font-size: 1rem;
     }
-
-    /* 🔻 Bottom Navigation */
     .bottom-nav {
       position: fixed;
       bottom: 0;
-      width: 100%;
-      background: #ffffff;
+      left: 0;
+      right: 0;
+      height: 65px;
+      background-color: #fff;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      padding: 10px 0;
-      border-top: 1px solid #ccc;
-      z-index: 1000;
+      box-shadow: 0 -1px 10px rgba(0,0,0,0.15);
+      z-index: 999;
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
     }
-
-    .bottom-nav a {
-      text-decoration: none;
-      color: #000000; /* Pure black icons */
-      font-size: 24px;
-    }
-
     .bottom-nav img {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      filter: brightness(0);
     }
   </style>
 </head>
 <body>
-
-  <h2>📅 आजचे स्टेटस</h2>
-  <div id="quoteList"></div>
-
-  <!-- ✅ Bottom Nav -->
-  <div class="bottom-nav">
-    <a href="quotes.html" title="Home">🏠</a>
-    <a href="search.html" title="Search">🔍</a>
-    <a href="upload.html" title="Add">➕</a>
-    <a href="videos.html" title="Reels">🎬</a>
-    <a href="profile.html" title="Profile">
-      <img src="https://i.ibb.co/Phg1hzf/profile.jpg" alt="Profile" />
-    </a>
+  <h2>आजचे Quotes</h2>
+  <div id="quoteContainer"></div>  <!-- Bottom Navigation -->  <div class="bottom-nav">
+    <a href="quotes.html"><img src="https://img.icons8.com/ios-filled/50/home.png" /></a>
+    <a href="search.html"><img src="https://img.icons8.com/ios-filled/50/search--v1.png" /></a>
+    <a href="#" onclick="openGallery()"><img src="https://img.icons8.com/ios-filled/50/plus-math.png" /></a>
+    <a href="videos.html"><img src="https://img.icons8.com/ios-filled/50/clapperboard.png" /></a>
+    <a href="profile.html"><img src="https://img.icons8.com/ios-filled/50/user-male-circle.png" /></a>
   </div>
-
-  <!-- ✅ Firebase + JS -->
-  <script type="module">
+  <input type="file" id="filePicker" accept="image/*,video/*" style="display:none" onchange="handleFileUpload()" />  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -96,44 +74,41 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
 
-    const quoteList = document.getElementById("quoteList");
+    const quoteContainer = document.getElementById("quoteContainer");
 
-    function getTodayDateKey() {
+    async function loadQuotes() {
       const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      return `${yyyy}-${mm}-${dd}`;
+      const dayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+      const snapshot = await getDocs(collection(db, "daily_quotes"));
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.date === dayKey) {
+          for (const category in data.quotes) {
+            const quote = data.quotes[category];
+            const div = document.createElement("div");
+            div.className = "quote-card";
+            div.innerHTML = `
+              <div class="quote-category">${category}</div>
+              <div class="quote-text">${quote}</div>
+            `;
+            quoteContainer.appendChild(div);
+          }
+        }
+      });
     }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return quoteList.innerHTML = "<p>Login required.</p>";
-
-      const dateKey = getTodayDateKey();
-      const docRef = doc(db, "daily_quotes", dateKey);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-
-        for (const category in data) {
-          const quote = data[category];
-          const card = document.createElement("div");
-          card.className = "quote-card";
-          card.innerHTML = `
-            <h3>${category}</h3>
-            <p>${quote}</p>
-          `;
-          quoteList.appendChild(card);
-        }
-
-      } else {
-        quoteList.innerHTML = `<p>❌ आजचे quotes उपलब्ध नाहीत.</p>`;
+    loadQuotes();
+  </script>  <script>
+    function openGallery() {
+      document.getElementById('filePicker').click();
+    }
+    function handleFileUpload() {
+      const file = document.getElementById('filePicker').files[0];
+      if (file) {
+        window.location.href = "upload.html";
       }
-    });
-  </script>
-
-</body>
+    }
+  </script></body>
 </html>
