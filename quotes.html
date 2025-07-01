@@ -1,60 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Today's Quotes - AmQuotes</title>
+  <title>आजचे स्टेटस | AmoQuotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
     body {
-      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      margin: 0;
+      font-family: 'Baloo 2', cursive;
+      background: linear-gradient(to right, #2c3e50, #4ca1af);
       color: white;
-      font-family: 'Segoe UI', sans-serif;
-      padding: 20px;
+      padding: 1rem;
     }
 
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 1rem;
+    }
+
+    .quote-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.2rem;
     }
 
     .quote-card {
-      background: rgba(255,255,255,0.1);
-      border-radius: 16px;
-      padding: 20px;
-      margin: 10px 0;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 1rem;
+      width: 300px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: 0.3s ease;
+      backdrop-filter: blur(6px);
+    }
+
+    .quote-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 20px #fff;
     }
 
     .quote-type {
-      color: #ff8c00;
+      font-size: 1.2rem;
       font-weight: bold;
-      margin-bottom: 8px;
+      color: #ffcc00;
+      margin-bottom: 0.5rem;
     }
 
     .quote-text {
-      font-size: 18px;
+      font-size: 1.1rem;
+      line-height: 1.6;
     }
 
-    .logout {
-      background: #ff0080;
-      border: none;
-      padding: 10px 20px;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 20px;
+    .no-quotes {
+      text-align: center;
+      font-size: 1.1rem;
+      margin-top: 2rem;
     }
   </style>
 </head>
 <body>
-  <h2>✨ आजचे कोट्स ✨</h2>
-  <div id="quoteList">Loading...</div>
-  <button class="logout" onclick="logout()">Logout</button>
+
+  <h2>🌟 आजचे सर्व प्रकारचे स्टेटस 🌟</h2>
+  <div class="quote-container" id="quotesList"></div>
+  <p class="no-quotes" id="noQuotes" style="display:none;">आजसाठी काही स्टेटस सापडले नाहीत.</p>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -63,57 +78,47 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
-    const quoteList = document.getElementById("quoteList");
+    const categories = [
+      "Romantic Quotes", "Love Status", "Sad", "Motivational",
+      "Friendship", "Attitude", "Breakup", "Funny"
+    ];
 
-    onAuthStateChanged(auth, async user => {
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const container = document.getElementById("quotesList");
+    const noQuotesMsg = document.getElementById("noQuotes");
+
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = "index.html";
         return;
       }
 
-      const prefSnap = await getDoc(doc(db, "user_preferences", user.uid));
-      if (!prefSnap.exists()) {
-        quoteList.innerText = "कोणतीही आवड निवडलेली नाही.";
-        return;
-      }
+      let found = false;
 
-      const preferences = prefSnap.data().preferences;
+      for (const type of categories) {
+        const docId = `${today}_${type}`;
+        const ref = doc(db, "daily_quotes_all", docId);
+        const snap = await getDoc(ref);
 
-      const today = new Date();
-      const dayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`; // e.g. 2025-07-01
-
-      let output = '';
-
-      for (const type of preferences) {
-        const quoteRef = doc(db, "daily_quotes_all", `${dayKey}_${type}`);
-        const quoteSnap = await getDoc(quoteRef);
-        if (quoteSnap.exists()) {
-          const quote = quoteSnap.data().text;
-          output += `
-            <div class="quote-card">
-              <div class="quote-type">${type}</div>
-              <div class="quote-text">"${quote}"</div>
-            </div>`;
-        } else {
-          output += `
-            <div class="quote-card">
-              <div class="quote-type">${type}</div>
-              <div class="quote-text">No quote available for today.</div>
-            </div>`;
+        if (snap.exists()) {
+          found = true;
+          const data = snap.data();
+          const card = document.createElement("div");
+          card.className = "quote-card";
+          card.innerHTML = `
+            <div class="quote-type">🔸 ${type}</div>
+            <div class="quote-text">${data.quote}</div>
+          `;
+          container.appendChild(card);
         }
       }
 
-      quoteList.innerHTML = output || "No quotes found.";
+      if (!found) noQuotesMsg.style.display = "block";
     });
-
-    window.logout = () => {
-      signOut(auth).then(() => {
-        window.location.href = "index.html";
-      });
-    }
   </script>
+
 </body>
 </html>
