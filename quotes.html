@@ -1,70 +1,145 @@
 <!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quotes - AmoQuotes</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>आजचे Quotes - AmoQuotes</title>
   <style>
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom, #1e044d, #4b0082);
+      margin: 0;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      padding-bottom: 80px;
-    }
-    h2 {
-      text-align: center;
-      margin-top: 1rem;
-    }
-    .quote-card {
-      background: rgba(255,255,255,0.08);
-      margin: 1rem;
-      padding: 1rem;
-      border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
-    .quote-category {
-      font-weight: bold;
-      font-size: 1.2rem;
-      color: #ff9de3;
-    }
-    .quote-text {
-      margin-top: 0.5rem;
-      font-size: 1rem;
-    }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 65px;
-      background-color: #fff;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      box-shadow: 0 -1px 10px rgba(0,0,0,0.15);
-      z-index: 999;
-      border-top-left-radius: 15px;
-      border-top-right-radius: 15px;
-    }
-    .bottom-nav img {
-      width: 26px;
-      height: 26px;
-      filter: brightness(0);
-    }
+      padding-bottom: 100px;
+    }h1 {
+  text-align: center;
+  padding: 1rem;
+  font-size: 1.8rem;
+}
+
+.story-bar {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  padding: 1rem;
+}
+
+.story-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.story-border {
+  border: 3px solid #ff0080;
+  padding: 3px;
+  border-radius: 50%;
+}
+
+.story-circle img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.story-circle p {
+  font-size: 12px;
+  margin-top: 5px;
+  text-align: center;
+}
+
+.quote-card {
+  margin: 1rem;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.quote-card h3 {
+  margin-bottom: 0.5rem;
+  color: #ffccff;
+}
+
+.quote-card p {
+  margin: 0;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+}
+
+.bottom-nav img {
+  width: 24px;
+  height: 24px;
+  filter: brightness(0);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.9);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  text-align: center;
+  max-width: 90%;
+}
+
+.modal-content img {
+  max-width: 90%;
+  max-height: 80vh;
+  border-radius: 10px;
+}
+
+.close {
+  color: white;
+  font-size: 40px;
+  position: absolute;
+  top: 10px;
+  right: 25px;
+  cursor: pointer;
+}
+
+#modalUsername {
+  color: white;
+  margin-top: 10px;
+  font-size: 18px;
+}
+
   </style>
 </head>
 <body>
-  <h2>आजचे Quotes</h2>
-  <div id="quoteContainer"></div>  <!-- Bottom Navigation -->  <div class="bottom-nav">
+  <h1>आजचे Quotes</h1>  <!-- Story UI -->  <div class="story-bar" id="storyList"></div>  <!-- Daily Quotes -->  <div id="quoteList"></div>  <!-- Story Preview Modal -->  <div id="storyModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <img id="modalImage" src="" alt="Story Image" />
+      <p id="modalUsername"></p>
+    </div>
+  </div>  <!-- Bottom Nav -->  <div class="bottom-nav">
     <a href="quotes.html"><img src="https://img.icons8.com/ios-filled/50/home.png" /></a>
     <a href="search.html"><img src="https://img.icons8.com/ios-filled/50/search--v1.png" /></a>
-    <a href="#" onclick="openGallery()"><img src="https://img.icons8.com/ios-filled/50/plus-math.png" /></a>
-    <a href="videos.html"><img src="https://img.icons8.com/ios-filled/50/clapperboard.png" /></a>
-    <a href="profile.html"><img src="https://img.icons8.com/ios-filled/50/user-male-circle.png" /></a>
-  </div>
-  <input type="file" id="filePicker" accept="image/*,video/*" style="display:none" onchange="handleFileUpload()" />  <script type="module">
+    <a href="upload.html"><img src="https://img.icons8.com/ios-filled/50/plus-math.png" /></a>
+    <a href="videos.html"><img src="https://img.icons8.com/ios-filled/50/film-reel.png" /></a>
+    <a href="profile.html"><img src="https://img.icons8.com/ios-filled/50/user.png" /></a>
+  </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -75,40 +150,56 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const quoteContainer = document.getElementById("quoteContainer");
-
     async function loadQuotes() {
-      const today = new Date();
-      const dayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      const today = new Date().toISOString().split('T')[0];
+      const docRef = doc(db, "daily_quotes", today);
+      const docSnap = await getDoc(docRef);
 
-      const snapshot = await getDocs(collection(db, "daily_quotes"));
-      snapshot.forEach(doc => {
+      const container = document.getElementById("quoteList");
+      container.innerHTML = "";
+
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        Object.keys(data).forEach(category => {
+          const q = data[category];
+          const card = document.createElement("div");
+          card.className = "quote-card";
+          card.innerHTML = `<h3>${category}</h3><p>${q.quote}</p>`;
+          container.appendChild(card);
+        });
+      }
+    }
+
+    async function loadStories() {
+      const storyContainer = document.getElementById("storyList");
+      const querySnapshot = await getDocs(collection(db, "stories"));
+
+      querySnapshot.forEach(doc => {
         const data = doc.data();
-        if (data.date === dayKey) {
-          for (const category in data.quotes) {
-            const quote = data.quotes[category];
-            const div = document.createElement("div");
-            div.className = "quote-card";
-            div.innerHTML = `
-              <div class="quote-category">${category}</div>
-              <div class="quote-text">${quote}</div>
-            `;
-            quoteContainer.appendChild(div);
-          }
-        }
+        const div = document.createElement("div");
+        div.className = "story-circle";
+        div.innerHTML = `
+          <div class="story-border">
+            <img src="${data.profileImage}" />
+          </div>
+          <p>${data.username}</p>
+        `;
+        div.onclick = () => openModal(data.storyImage, data.username);
+        storyContainer.appendChild(div);
       });
     }
 
     loadQuotes();
+    loadStories();
   </script>  <script>
-    function openGallery() {
-      document.getElementById('filePicker').click();
+    function openModal(imageUrl, username) {
+      document.getElementById("modalImage").src = imageUrl;
+      document.getElementById("modalUsername").textContent = username;
+      document.getElementById("storyModal").style.display = "flex";
     }
-    function handleFileUpload() {
-      const file = document.getElementById('filePicker').files[0];
-      if (file) {
-        window.location.href = "upload.html";
-      }
+
+    function closeModal() {
+      document.getElementById("storyModal").style.display = "none";
     }
   </script></body>
 </html>
