@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Profile | AmoQuotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding: 20px;
+      padding-bottom: 70px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .content {
+      max-width: 600px;
+      margin: auto;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    .quote-text {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .quote-author {
+      font-size: 14px;
+      color: #ccc;
+    }
+    video {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .section-title {
+      font-size: 20px;
+      margin: 25px 0 10px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: #1c1c3c;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #444;
+    }
+    .bottom-nav button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .bottom-nav button:hover {
+      color: #00ffff;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>👤 My Uploads</h2>
+  <div class="content" id="profileContent">
+    <div class="section-title">📝 My Quotes</div>
+    <div id="myQuotes"></div>
+
+    <div class="section-title">🎥 My Videos</div>
+    <div id="myVideos"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="location.href='home.html'">🏠 Home</button>
+    <button onclick="alert('Coming soon')">🔍 Search</button>
+    <button onclick="location.href='upload.html'">➕ Upload</button>
+    <button onclick="location.href='profile.html'">👤 Profile</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import {
+      getFirestore, collection, query, where, getDocs, orderBy
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.firebasestorage.app",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const quoteContainer = document.getElementById("myQuotes");
+    const videoContainer = document.getElementById("myVideos");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Please login first");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const uid = user.uid;
+
+      // Load user's quotes
+      const q = query(collection(db, "quotes"), where("uid", "==", uid), orderBy("timestamp", "desc"));
+      const quoteSnap = await getDocs(q);
+      quoteSnap.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <div class="quote-text">“${data.text}”</div>
+          <div class="quote-author">— ${data.author || "Anonymous"}</div>
+        `;
+        quoteContainer.appendChild(div);
+      });
+
+      // Load user's videos
+      const v = query(collection(db, "videos"), where("uid", "==", uid), orderBy("timestamp", "desc"));
+      const videoSnap = await getDocs(v);
+      videoSnap.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <video src="${data.url}" controls></video>
+          <div class="quote-author">${data.caption || ""}</div>
+        `;
+        videoContainer.appendChild(div);
+      });
+    });
+  </script>
+
+</body>
+</html>
