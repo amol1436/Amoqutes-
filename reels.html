@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reels | AmoQuotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      background-color: black;
+      font-family: 'Poppins', sans-serif;
+      overflow: hidden;
+    }
+    .reel-container {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+    }
+    .reel {
+      height: 100vh;
+      scroll-snap-align: start;
+      position: relative;
+    }
+    video {
+      height: 100vh;
+      width: 100%;
+      object-fit: cover;
+    }
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      gap: 15px;
+    }
+    .controls button {
+      background: rgba(0, 0, 0, 0.5);
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .caption {
+      position: absolute;
+      bottom: 80px;
+      left: 20px;
+      color: white;
+      font-size: 16px;
+      max-width: 80%;
+      text-shadow: 0 0 5px #000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="reel-container" id="reelContainer">
+    <!-- Video reels dynamically inserted here -->
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore, collection, getDocs, orderBy, query
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.firebasestorage.app",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const reelContainer = document.getElementById("reelContainer");
+
+    async function loadReels() {
+      const q = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "reel";
+        div.innerHTML = `
+          <video src="${data.url}" muted autoplay loop playsinline></video>
+          <div class="caption">${data.caption || ''}</div>
+          <div class="controls">
+            <button onclick="this.closest('.reel').querySelector('video').muted = !this.closest('.reel').querySelector('video').muted">
+              🔇
+            </button>
+            <button onclick="navigator.share ? navigator.share({ url: '${data.url}' }) : prompt('Copy link', '${data.url}')">📤</button>
+          </div>
+        `;
+        reelContainer.appendChild(div);
+      });
+    }
+
+    loadReels();
+  </script>
+
+</body>
+</html>
