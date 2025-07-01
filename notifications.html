@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Notifications | AmoQuotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      font-family: 'Poppins', sans-serif;
+      color: white;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .notification {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    .notification .user {
+      font-weight: bold;
+    }
+    .notification .time {
+      font-size: 13px;
+      color: #ccc;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🔔 Your Notifications</h2>
+
+  <div id="notificationsContainer"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore, collection, query, where, orderBy, getDocs
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.firebasestorage.app",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    const container = document.getElementById("notificationsContainer");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        container.innerHTML = "<p style='text-align:center;'>Please login to view notifications.</p>";
+        return;
+      }
+
+      const q = query(
+        collection(db, "notifications"),
+        where("toUid", "==", user.uid),
+        orderBy("timestamp", "desc")
+      );
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        container.innerHTML = "<p style='text-align:center;'>No notifications found.</p>";
+        return;
+      }
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "notification";
+        const time = data.timestamp?.toDate().toLocaleString() || "Unknown";
+        div.innerHTML = `
+          <div class="user">@${data.fromUser}</div>
+          <div>${data.message}</div>
+          <div class="time">${time}</div>
+        `;
+        container.appendChild(div);
+      });
+    });
+  </script>
+
+</body>
+</html>
