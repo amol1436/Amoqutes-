@@ -1,205 +1,118 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>आजचे Quotes - AmoQuotes</title>
+  <meta charset="UTF-8" />
+  <title>AmoQuotes - Quotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
       margin: 0;
+      font-family: 'Poppins', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      padding-bottom: 100px;
-    }h1 {
-  text-align: center;
-  padding: 1rem;
-  font-size: 1.8rem;
-}
-
-.story-bar {
-  display: flex;
-  overflow-x: auto;
-  gap: 10px;
-  padding: 1rem;
-}
-
-.story-circle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-}
-
-.story-border {
-  border: 3px solid #ff0080;
-  padding: 3px;
-  border-radius: 50%;
-}
-
-.story-circle img {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-}
-
-.story-circle p {
-  font-size: 12px;
-  margin-top: 5px;
-  text-align: center;
-}
-
-.quote-card {
-  margin: 1rem;
-  background-color: rgba(255, 255, 255, 0.05);
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.quote-card h3 {
-  margin-bottom: 0.5rem;
-  color: #ffccff;
-}
-
-.quote-card p {
-  margin: 0;
-}
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: white;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 0;
-}
-
-.bottom-nav img {
-  width: 24px;
-  height: 24px;
-  filter: brightness(0);
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background-color: rgba(0, 0, 0, 0.9);
-  justify-content: center;
-  align-items: center;
-}
-
-.modal-content {
-  text-align: center;
-  max-width: 90%;
-}
-
-.modal-content img {
-  max-width: 90%;
-  max-height: 80vh;
-  border-radius: 10px;
-}
-
-.close {
-  color: white;
-  font-size: 40px;
-  position: absolute;
-  top: 10px;
-  right: 25px;
-  cursor: pointer;
-}
-
-#modalUsername {
-  color: white;
-  margin-top: 10px;
-  font-size: 18px;
-}
-
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .quote-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin: 15px auto;
+      max-width: 500px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .quote-text {
+      font-size: 18px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .quote-author {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+    .quote-actions {
+      display: flex;
+      justify-content: space-between;
+    }
+    button {
+      background: transparent;
+      color: #fff;
+      border: 1px solid #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #fff;
+      color: #000;
+    }
   </style>
 </head>
 <body>
-  <h1>आजचे Quotes</h1>  <!-- Story UI -->  <div class="story-bar" id="storyList"></div>  <!-- Daily Quotes -->  <div id="quoteList"></div>  <!-- Story Preview Modal -->  <div id="storyModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <img id="modalImage" src="" alt="Story Image" />
-      <p id="modalUsername"></p>
-    </div>
-  </div>  <!-- Bottom Nav -->  <div class="bottom-nav">
-    <a href="quotes.html"><img src="https://img.icons8.com/ios-filled/50/home.png" /></a>
-    <a href="search.html"><img src="https://img.icons8.com/ios-filled/50/search--v1.png" /></a>
-    <a href="upload.html"><img src="https://img.icons8.com/ios-filled/50/plus-math.png" /></a>
-    <a href="videos.html"><img src="https://img.icons8.com/ios-filled/50/film-reel.png" /></a>
-    <a href="profile.html"><img src="https://img.icons8.com/ios-filled/50/user.png" /></a>
-  </div>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+  <h1>🔥 Trending Quotes</h1>
+  <div id="quotesList"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore, collection, getDocs, orderBy, query, updateDoc, doc, increment
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
       authDomain: "amoqutes.firebaseapp.com",
-      projectId: "amoqutes"
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.firebasestorage.app",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const list = document.getElementById("quotesList");
 
     async function loadQuotes() {
-      const today = new Date().toISOString().split('T')[0];
-      const docRef = doc(db, "daily_quotes", today);
-      const docSnap = await getDoc(docRef);
+      const q = query(collection(db, "quotes"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
 
-      const container = document.getElementById("quoteList");
-      container.innerHTML = "";
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        Object.keys(data).forEach(category => {
-          const q = data[category];
-          const card = document.createElement("div");
-          card.className = "quote-card";
-          card.innerHTML = `<h3>${category}</h3><p>${q.quote}</p>`;
-          container.appendChild(card);
-        });
-      }
-    }
-
-    async function loadStories() {
-      const storyContainer = document.getElementById("storyList");
-      const querySnapshot = await getDocs(collection(db, "stories"));
-
-      querySnapshot.forEach(doc => {
-        const data = doc.data();
+      snapshot.forEach(docSnap => {
+        const q = docSnap.data();
         const div = document.createElement("div");
-        div.className = "story-circle";
+        div.className = "quote-card";
         div.innerHTML = `
-          <div class="story-border">
-            <img src="${data.profileImage}" />
+          <div class="quote-text">“${q.text}”</div>
+          <div class="quote-author">— ${q.author || 'Anonymous'}</div>
+          <div class="quote-actions">
+            <button onclick="likeQuote('${docSnap.id}', this)">❤️ ${q.likes || 0}</button>
+            <button onclick="shareQuote('${q.text}')">📤 Share</button>
           </div>
-          <p>${data.username}</p>
         `;
-        div.onclick = () => openModal(data.storyImage, data.username);
-        storyContainer.appendChild(div);
+        list.appendChild(div);
       });
     }
 
-    loadQuotes();
-    loadStories();
-  </script>  <script>
-    function openModal(imageUrl, username) {
-      document.getElementById("modalImage").src = imageUrl;
-      document.getElementById("modalUsername").textContent = username;
-      document.getElementById("storyModal").style.display = "flex";
-    }
+    window.likeQuote = async function(id, btn) {
+      const quoteRef = doc(db, "quotes", id);
+      await updateDoc(quoteRef, { likes: increment(1) });
+      btn.innerText = "❤️ Liked";
+      btn.disabled = true;
+    };
 
-    function closeModal() {
-      document.getElementById("storyModal").style.display = "none";
-    }
-  </script></body>
+    window.shareQuote = function(text) {
+      if (navigator.share) {
+        navigator.share({ text });
+      } else {
+        prompt("📋 Copy this quote:", text);
+      }
+    };
+
+    loadQuotes();
+  </script>
+</body>
 </html>
