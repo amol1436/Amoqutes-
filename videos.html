@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trending Videos - AmoQuotes</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1e044d, #4b0082);
+      color: white;
+      padding: 1rem;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .video-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .video-card {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 10px;
+      width: 300px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: 0.3s ease;
+    }
+
+    .video-card video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .video-title {
+      margin-top: 8px;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+
+    .no-videos {
+      text-align: center;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎬 Trending Video Status</h2>
+  <div class="video-grid" id="videoList"></div>
+  <p class="no-videos" id="noVideos" style="display:none;">आजचे व्हिडिओ सापडले नाहीत.</p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const list = document.getElementById("videoList");
+    const noVideos = document.getElementById("noVideos");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const snap = await getDocs(collection(db, "video_status"));
+      if (snap.empty) {
+        noVideos.style.display = "block";
+        return;
+      }
+
+      snap.forEach(doc => {
+        const { videoUrl, type } = doc.data();
+        const card = document.createElement("div");
+        card.className = "video-card";
+        card.innerHTML = `
+          <video controls>
+            <source src="${videoUrl}" type="video/mp4">
+            तुमचा ब्राउझर हे व्हिडिओ प्ले करू शकत नाही.
+          </video>
+          <div class="video-title">🔹 ${type}</div>
+        `;
+        list.appendChild(card);
+      });
+    });
+  </script>
+
+</body>
+</html>
