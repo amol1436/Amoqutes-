@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AmoQuotes - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding-bottom: 70px; /* space for nav */
+    }
+
+    h1 {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    #feed {
+      max-width: 600px;
+      margin: auto;
+      padding: 10px;
+    }
+
+    .quote-card, .video-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .quote-text {
+      font-size: 18px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .quote-author {
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    button {
+      background: transparent;
+      border: 1px solid white;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: white;
+      color: black;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: #1c1c3c;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #444;
+    }
+
+    .bottom-nav button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .bottom-nav button:hover {
+      color: #00ffff;
+    }
+
+    .search-box {
+      max-width: 500px;
+      margin: 0 auto 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .search-box input {
+      width: 80%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>🔥 Home Feed</h1>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search quotes or videos..." />
+  </div>
+
+  <div id="feed"></div>
+
+  <div class="bottom-nav">
+    <button onclick="location.href='home.html'">🏠 Home</button>
+    <button onclick="alert('Coming soon')">🔍 Search</button>
+    <button onclick="location.href='upload.html'">➕ Upload</button>
+    <button onclick="location.href='profile.html'">👤 Profile</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore, collection, getDocs, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.firebasestorage.app",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const feed = document.getElementById("feed");
+
+    async function loadFeed() {
+      const quotesRef = query(collection(db, "quotes"), orderBy("timestamp", "desc"));
+      const videosRef = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+
+      const [quotesSnap, videosSnap] = await Promise.all([
+        getDocs(quotesRef),
+        getDocs(videosRef)
+      ]);
+
+      let combined = [];
+
+      quotesSnap.forEach(doc => {
+        combined.push({ type: "quote", data: doc.data() });
+      });
+
+      videosSnap.forEach(doc => {
+        combined.push({ type: "video", data: doc.data() });
+      });
+
+      // Sort all by timestamp descending
+      combined.sort((a, b) => b.data.timestamp?.seconds - a.data.timestamp?.seconds);
+
+      combined.forEach(item => {
+        const div = document.createElement("div");
+        if (item.type === "quote") {
+          div.className = "quote-card";
+          div.innerHTML = `
+            <div class="quote-text">“${item.data.text}”</div>
+            <div class="quote-author">— ${item.data.author || "Anonymous"}</div>
+          `;
+        } else if (item.type === "video") {
+          div.className = "video-card";
+          div.innerHTML = `
+            <video src="${item.data.url}" controls></video>
+            <div>${item.data.caption || ""}</div>
+          `;
+        }
+        feed.appendChild(div);
+      });
+    }
+
+    loadFeed();
+  </script>
+
+</body>
+</html>
