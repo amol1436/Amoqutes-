@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Today's Quotes - AmQuotes</title>
+  <style>
+    body {
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .quote-card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 20px;
+      margin: 10px 0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .quote-type {
+      color: #ff8c00;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .quote-text {
+      font-size: 18px;
+    }
+
+    .logout {
+      background: #ff0080;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>✨ आजचे कोट्स ✨</h2>
+  <div id="quoteList">Loading...</div>
+  <button class="logout" onclick="logout()">Logout</button>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const quoteList = document.getElementById("quoteList");
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      const prefSnap = await getDoc(doc(db, "user_preferences", user.uid));
+      if (!prefSnap.exists()) {
+        quoteList.innerText = "कोणतीही आवड निवडलेली नाही.";
+        return;
+      }
+
+      const preferences = prefSnap.data().preferences;
+
+      const today = new Date();
+      const dayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`; // e.g. 2025-07-01
+
+      let output = '';
+
+      for (const type of preferences) {
+        const quoteRef = doc(db, "daily_quotes_all", `${dayKey}_${type}`);
+        const quoteSnap = await getDoc(quoteRef);
+        if (quoteSnap.exists()) {
+          const quote = quoteSnap.data().text;
+          output += `
+            <div class="quote-card">
+              <div class="quote-type">${type}</div>
+              <div class="quote-text">"${quote}"</div>
+            </div>`;
+        } else {
+          output += `
+            <div class="quote-card">
+              <div class="quote-type">${type}</div>
+              <div class="quote-text">No quote available for today.</div>
+            </div>`;
+        }
+      }
+
+      quoteList.innerHTML = output || "No quotes found.";
+    });
+
+    window.logout = () => {
+      signOut(auth).then(() => {
+        window.location.href = "index.html";
+      });
+    }
+  </script>
+</body>
+</html>
