@@ -8,59 +8,39 @@
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #1e044d, #4b0082);
+      background: #1e044d;
       color: white;
       padding: 1rem;
     }
-
     h2 {
       text-align: center;
       margin-bottom: 1rem;
     }
-
-    .video-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1.5rem;
-    }
-
     .video-card {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      padding: 10px;
-      width: 300px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: 0.3s ease;
+      margin-bottom: 1.5rem;
+      background: rgba(255,255,255,0.05);
+      padding: 1rem;
+      border-radius: 12px;
     }
-
-    .video-card video {
+    video {
       width: 100%;
-      border-radius: 10px;
+      border-radius: 12px;
     }
-
-    .video-title {
-      margin-top: 8px;
-      font-size: 1.1rem;
-      text-align: center;
-    }
-
-    .no-videos {
-      text-align: center;
-      margin-top: 2rem;
+    .video-type {
+      margin-top: 0.5rem;
+      text-align: right;
+      font-size: 0.9rem;
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
-
-  <h2>🎬 Trending Video Status</h2>
-  <div class="video-grid" id="videoList"></div>
-  <p class="no-videos" id="noVideos" style="display:none;">आजचे व्हिडिओ सापडले नाहीत.</p>
+  <h2>🎬 ट्रेंडिंग व्हिडिओ स्टेटस</h2>
+  <div id="videoList">Loading...</div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -70,38 +50,28 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
 
-    const list = document.getElementById("videoList");
-    const noVideos = document.getElementById("noVideos");
+    const videoList = document.getElementById("videoList");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
+    async function loadVideos() {
+      const q = query(collection(db, "video_status"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(q);
 
-      const snap = await getDocs(collection(db, "video_status"));
-      if (snap.empty) {
-        noVideos.style.display = "block";
-        return;
-      }
+      videoList.innerHTML = "";
 
       snap.forEach(doc => {
-        const { videoUrl, type } = doc.data();
-        const card = document.createElement("div");
-        card.className = "video-card";
-        card.innerHTML = `
-          <video controls>
-            <source src="${videoUrl}" type="video/mp4">
-            तुमचा ब्राउझर हे व्हिडिओ प्ले करू शकत नाही.
-          </video>
-          <div class="video-title">🔹 ${type}</div>
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "video-card";
+        div.innerHTML = `
+          <video controls src="${data.videoUrl}"></video>
+          <div class="video-type">#${data.type}</div>
         `;
-        list.appendChild(card);
+        videoList.appendChild(div);
       });
-    });
-  </script>
+    }
 
+    loadVideos();
+  </script>
 </body>
 </html>
