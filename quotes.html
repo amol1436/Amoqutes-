@@ -2,123 +2,81 @@
 <html lang="mr">
 <head>
   <meta charset="UTF-8" />
-  <title>आजचे स्टेटस | AmoQuotes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Quotes - AmoQuotes</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Baloo+2&display=swap');
     body {
       margin: 0;
-      font-family: 'Baloo 2', cursive;
-      background: linear-gradient(to right, #2c3e50, #4ca1af);
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f0c29;
       color: white;
       padding: 1rem;
     }
-
     h2 {
       text-align: center;
       margin-bottom: 1rem;
     }
-
-    .quote-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1.2rem;
-    }
-
     .quote-card {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
+      background: linear-gradient(45deg, #ff0080, #7928ca);
       padding: 1rem;
-      width: 300px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: 0.3s ease;
-      backdrop-filter: blur(6px);
+      border-radius: 16px;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      position: relative;
     }
-
-    .quote-card:hover {
-      transform: scale(1.03);
-      box-shadow: 0 0 20px #fff;
-    }
-
     .quote-type {
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #ffcc00;
-      margin-bottom: 0.5rem;
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      border-radius: 8px;
     }
-
     .quote-text {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       line-height: 1.6;
-    }
-
-    .no-quotes {
-      text-align: center;
-      font-size: 1.1rem;
-      margin-top: 2rem;
     }
   </style>
 </head>
 <body>
-
-  <h2>🌟 आजचे सर्व प्रकारचे स्टेटस 🌟</h2>
-  <div class="quote-container" id="quotesList"></div>
-  <p class="no-quotes" id="noQuotes" style="display:none;">आजसाठी काही स्टेटस सापडले नाहीत.</p>
+  <h2>✨ आजचे Quotes</h2>
+  <div id="quotesList">Loading...</div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+    import { getFirestore, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
       authDomain: "amoqutes.firebaseapp.com",
-      projectId: "amoqutes"
+      projectId: "amoqutes",
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
 
-    const categories = [
-      "Romantic Quotes", "Love Status", "Sad", "Motivational",
-      "Friendship", "Attitude", "Breakup", "Funny"
-    ];
+    const quotesList = document.getElementById("quotesList");
 
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    const container = document.getElementById("quotesList");
-    const noQuotesMsg = document.getElementById("noQuotes");
+    async function loadQuotes() {
+      const q = query(collection(db, "quotes"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(q);
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
+      quotesList.innerHTML = "";
 
-      let found = false;
+      snap.forEach(doc => {
+        const quote = doc.data();
+        const div = document.createElement("div");
+        div.className = "quote-card";
+        div.innerHTML = `
+          <div class="quote-type">${quote.type}</div>
+          <div class="quote-text">❝ ${quote.text} ❞</div>
+        `;
+        quotesList.appendChild(div);
+      });
+    }
 
-      for (const type of categories) {
-        const docId = `${today}_${type}`;
-        const ref = doc(db, "daily_quotes_all", docId);
-        const snap = await getDoc(ref);
-
-        if (snap.exists()) {
-          found = true;
-          const data = snap.data();
-          const card = document.createElement("div");
-          card.className = "quote-card";
-          card.innerHTML = `
-            <div class="quote-type">🔸 ${type}</div>
-            <div class="quote-text">${data.quote}</div>
-          `;
-          container.appendChild(card);
-        }
-      }
-
-      if (!found) noQuotesMsg.style.display = "block";
-    });
+    loadQuotes();
   </script>
-
 </body>
 </html>
