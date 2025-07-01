@@ -2,74 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AmoQuotes - Home</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home | AmoQuotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      padding-bottom: 70px; /* space for nav */
+      padding: 20px;
+      padding-bottom: 80px;
     }
-
-    h1 {
+    h2 {
       text-align: center;
-      padding: 20px 0;
+      margin-bottom: 30px;
     }
-
-    #feed {
-      max-width: 600px;
-      margin: auto;
-      padding: 10px;
+    .section-title {
+      font-size: 20px;
+      margin: 25px 0 10px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
     }
-
-    .quote-card, .video-card {
+    .card {
       background: rgba(255,255,255,0.05);
       border-radius: 15px;
-      padding: 15px 20px;
+      padding: 15px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
     }
-
     .quote-text {
       font-size: 18px;
-      line-height: 1.5;
       margin-bottom: 10px;
     }
-
     .quote-author {
       font-size: 14px;
       color: #ccc;
+      text-align: right;
     }
-
     video {
       width: 100%;
       border-radius: 10px;
-      margin-bottom: 10px;
     }
-
-    .actions {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-    }
-
-    button {
-      background: transparent;
-      border: 1px solid white;
-      color: white;
-      padding: 5px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: white;
-      color: black;
-    }
-
-    /* Bottom Nav */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -82,7 +55,6 @@
       align-items: center;
       border-top: 1px solid #444;
     }
-
     .bottom-nav button {
       background: none;
       border: none;
@@ -90,42 +62,23 @@
       font-size: 16px;
       cursor: pointer;
     }
-
     .bottom-nav button:hover {
       color: #00ffff;
     }
-
-    .search-box {
-      max-width: 500px;
-      margin: 0 auto 20px;
-      display: flex;
-      justify-content: center;
-    }
-
-    .search-box input {
-      width: 80%;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-
   </style>
 </head>
 <body>
 
-  <h1>🔥 Home Feed</h1>
+  <h2>🔥 Trending Feed</h2>
 
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search quotes or videos..." />
-  </div>
+  <div class="section-title">📝 Quotes</div>
+  <div id="quotesContainer"></div>
 
-  <div id="feed"></div>
+  <div class="section-title">🎥 Video Status</div>
+  <div id="videosContainer"></div>
 
   <div class="bottom-nav">
     <button onclick="location.href='home.html'">🏠 Home</button>
-    <button onclick="alert('Coming soon')">🔍 Search</button>
     <button onclick="location.href='upload.html'">➕ Upload</button>
     <button onclick="location.href='profile.html'">👤 Profile</button>
   </div>
@@ -133,7 +86,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import {
-      getFirestore, collection, getDocs, query, orderBy
+      getFirestore, collection, query, orderBy, getDocs
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -148,50 +101,42 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const feed = document.getElementById("feed");
 
-    async function loadFeed() {
-      const quotesRef = query(collection(db, "quotes"), orderBy("timestamp", "desc"));
-      const videosRef = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+    const quotesContainer = document.getElementById("quotesContainer");
+    const videosContainer = document.getElementById("videosContainer");
 
-      const [quotesSnap, videosSnap] = await Promise.all([
-        getDocs(quotesRef),
-        getDocs(videosRef)
-      ]);
-
-      let combined = [];
-
-      quotesSnap.forEach(doc => {
-        combined.push({ type: "quote", data: doc.data() });
-      });
-
-      videosSnap.forEach(doc => {
-        combined.push({ type: "video", data: doc.data() });
-      });
-
-      // Sort all by timestamp descending
-      combined.sort((a, b) => b.data.timestamp?.seconds - a.data.timestamp?.seconds);
-
-      combined.forEach(item => {
+    async function loadQuotes() {
+      const q = query(collection(db, "quotes"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      snapshot.forEach(doc => {
+        const data = doc.data();
         const div = document.createElement("div");
-        if (item.type === "quote") {
-          div.className = "quote-card";
-          div.innerHTML = `
-            <div class="quote-text">“${item.data.text}”</div>
-            <div class="quote-author">— ${item.data.author || "Anonymous"}</div>
-          `;
-        } else if (item.type === "video") {
-          div.className = "video-card";
-          div.innerHTML = `
-            <video src="${item.data.url}" controls></video>
-            <div>${item.data.caption || ""}</div>
-          `;
-        }
-        feed.appendChild(div);
+        div.className = "card";
+        div.innerHTML = `
+          <div class="quote-text">“${data.text}”</div>
+          <div class="quote-author">— ${data.author || "Anonymous"}</div>
+        `;
+        quotesContainer.appendChild(div);
       });
     }
 
-    loadFeed();
+    async function loadVideos() {
+      const q = query(collection(db, "videos"), orderBy("timestamp", "desc"));
+      const snapshot = await getDocs(q);
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <video src="${data.url}" controls></video>
+          <div class="quote-author">${data.caption || ""}</div>
+        `;
+        videosContainer.appendChild(div);
+      });
+    }
+
+    loadQuotes();
+    loadVideos();
   </script>
 
 </body>
