@@ -2,71 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Search | AmoQuotes</title>
+  <title>Search Users | AmoQuotes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      font-family: 'Poppins', sans-serif;
       color: white;
       padding: 20px;
-      padding-bottom: 80px;
     }
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
-    input[type="text"] {
+    input {
       width: 100%;
-      padding: 12px 15px;
-      font-size: 16px;
+      padding: 12px;
+      border-radius: 10px;
       border: none;
-      border-radius: 10px;
-      outline: none;
       margin-bottom: 20px;
+      font-size: 16px;
     }
-    .section-title {
-      font-size: 20px;
-      margin-top: 25px;
-      border-bottom: 1px solid #555;
-      padding-bottom: 5px;
-    }
-    .card {
+    .user-card {
       background: rgba(255,255,255,0.05);
-      border-radius: 15px;
       padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      margin-bottom: 12px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .quote-text {
+    .user-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .user-name {
+      font-weight: bold;
       font-size: 18px;
-      margin-bottom: 10px;
     }
-    .quote-author {
-      font-size: 14px;
+    .user-uid {
+      font-size: 13px;
       color: #ccc;
-      text-align: right;
     }
-    video {
-      width: 100%;
-      border-radius: 10px;
+    button {
+      background: #00ffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    a {
+      color: white;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
 
-  <h2>🔍 Search by Username</h2>
-
-  <input type="text" id="searchInput" placeholder="Enter username... (e.g. amol1436)" />
-
+  <h2>🔍 Search Users</h2>
+  <input type="text" placeholder="Search by name..." id="searchInput" />
   <div id="results"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import {
-      getFirestore, collection, query, where, getDocs, orderBy
+      getFirestore, collection, getDocs, doc, getDoc,
+      updateDoc, arrayUnion, arrayRemove
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -74,60 +81,78 @@
       projectId: "amoqutes",
       storageBucket: "amoqutes.firebasestorage.app",
       messagingSenderId: "817694015009",
-      appId: "1:817694015009:web:488c55ad3b834036882d60",
-      measurementId: "G-R0EZ6JZWVM"
+      appId: "1:817694015009:web:488c55ad3b834036882d60"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth();
+
     const searchInput = document.getElementById("searchInput");
-    const resultsDiv = document.getElementById("results");
+    const results = document.getElementById("results");
 
-    searchInput.addEventListener("keyup", async (e) => {
-      if (e.key === "Enter") {
-        const username = searchInput.value.trim().toLowerCase();
-        if (!username) return;
+    let currentUser;
+    let currentFollowing = [];
 
-        resultsDiv.innerHTML = `<div class="section-title">📝 Quotes by ${username}</div>`;
-
-        const quoteQuery = query(collection(db, "quotes"), where("username", "==", username), orderBy("timestamp", "desc"));
-        const quoteSnap = await getDocs(quoteQuery);
-
-        if (quoteSnap.empty) {
-          resultsDiv.innerHTML += "<p>No quotes found.</p>";
-        } else {
-          quoteSnap.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.className = "card";
-            div.innerHTML = `
-              <div class="quote-text">“${data.text}”</div>
-              <div class="quote-author">— ${data.author || "Unknown"}</div>
-            `;
-            resultsDiv.appendChild(div);
-          });
-        }
-
-        resultsDiv.innerHTML += `<div class="section-title">🎥 Videos by ${username}</div>`;
-
-        const videoQuery = query(collection(db, "videos"), where("username", "==", username), orderBy("timestamp", "desc"));
-        const videoSnap = await getDocs(videoQuery);
-
-        if (videoSnap.empty) {
-          resultsDiv.innerHTML += "<p>No videos found.</p>";
-        } else {
-          videoSnap.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.className = "card";
-            div.innerHTML = `
-              <video src="${data.url}" controls></video>
-              <div class="quote-author">${data.caption || ""}</div>
-            `;
-            resultsDiv.appendChild(div);
-          });
-        }
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Login first");
+        location.href = "login.html";
+        return;
       }
+      currentUser = user;
+      const currentSnap = await getDoc(doc(db, "users", user.uid));
+      currentFollowing = currentSnap.data()?.following || [];
+
+      const allUsersSnap = await getDocs(collection(db, "users"));
+      const allUsers = [];
+      allUsersSnap.forEach(docu => {
+        allUsers.push({ uid: docu.id, ...docu.data() });
+      });
+
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.toLowerCase();
+        results.innerHTML = "";
+
+        allUsers.forEach(u => {
+          if (u.uid === user.uid) return;
+          const name = (u.name || "").toLowerCase();
+          if (name.includes(query)) {
+            const div = document.createElement("div");
+            div.className = "user-card";
+
+            const info = document.createElement("div");
+            info.className = "user-info";
+            info.innerHTML = `
+              <a href="user-profile.html?uid=${u.uid}">
+                <div class="user-name">${u.name || "User"}</div>
+                <div class="user-uid">UID: ${u.uid.slice(0, 6)}...</div>
+              </a>
+            `;
+
+            const btn = document.createElement("button");
+            btn.innerText = currentFollowing.includes(u.uid) ? "Unfollow" : "Follow";
+            btn.addEventListener("click", async () => {
+              const currentRef = doc(db, "users", currentUser.uid);
+              const targetRef = doc(db, "users", u.uid);
+
+              if (btn.innerText === "Unfollow") {
+                await updateDoc(currentRef, { following: arrayRemove(u.uid) });
+                await updateDoc(targetRef, { followers: arrayRemove(currentUser.uid) });
+                btn.innerText = "Follow";
+              } else {
+                await updateDoc(currentRef, { following: arrayUnion(u.uid) });
+                await updateDoc(targetRef, { followers: arrayUnion(currentUser.uid) });
+                btn.innerText = "Unfollow";
+              }
+            });
+
+            div.appendChild(info);
+            div.appendChild(btn);
+            results.appendChild(div);
+          }
+        });
+      });
     });
   </script>
 
