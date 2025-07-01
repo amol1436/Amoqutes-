@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Search | AmoQuotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding: 20px;
+      padding-bottom: 80px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 20px;
+      margin-top: 25px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
+    .quote-text {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .quote-author {
+      font-size: 14px;
+      color: #ccc;
+      text-align: right;
+    }
+    video {
+      width: 100%;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🔍 Search by Username</h2>
+
+  <input type="text" id="searchInput" placeholder="Enter username... (e.g. amol1436)" />
+
+  <div id="results"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore, collection, query, where, getDocs, orderBy
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.firebasestorage.app",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const searchInput = document.getElementById("searchInput");
+    const resultsDiv = document.getElementById("results");
+
+    searchInput.addEventListener("keyup", async (e) => {
+      if (e.key === "Enter") {
+        const username = searchInput.value.trim().toLowerCase();
+        if (!username) return;
+
+        resultsDiv.innerHTML = `<div class="section-title">📝 Quotes by ${username}</div>`;
+
+        const quoteQuery = query(collection(db, "quotes"), where("username", "==", username), orderBy("timestamp", "desc"));
+        const quoteSnap = await getDocs(quoteQuery);
+
+        if (quoteSnap.empty) {
+          resultsDiv.innerHTML += "<p>No quotes found.</p>";
+        } else {
+          quoteSnap.forEach(doc => {
+            const data = doc.data();
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
+              <div class="quote-text">“${data.text}”</div>
+              <div class="quote-author">— ${data.author || "Unknown"}</div>
+            `;
+            resultsDiv.appendChild(div);
+          });
+        }
+
+        resultsDiv.innerHTML += `<div class="section-title">🎥 Videos by ${username}</div>`;
+
+        const videoQuery = query(collection(db, "videos"), where("username", "==", username), orderBy("timestamp", "desc"));
+        const videoSnap = await getDocs(videoQuery);
+
+        if (videoSnap.empty) {
+          resultsDiv.innerHTML += "<p>No videos found.</p>";
+        } else {
+          videoSnap.forEach(doc => {
+            const data = doc.data();
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
+              <video src="${data.url}" controls></video>
+              <div class="quote-author">${data.caption || ""}</div>
+            `;
+            resultsDiv.appendChild(div);
+          });
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
