@@ -1,85 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Upload | AmoQuotes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
-      color: white;
       padding: 20px;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      font-family: 'Poppins', sans-serif;
+      color: white;
     }
     h2 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
     }
-    form {
-      max-width: 500px;
-      margin: auto;
-      background: rgba(255,255,255,0.05);
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin-bottom: 15px;
-      border-radius: 10px;
       border: none;
+      border-radius: 10px;
       font-size: 16px;
-    }
-    input[type="file"] {
-      background: #fff;
-      color: #000;
     }
     button {
       width: 100%;
       padding: 12px;
-      font-size: 16px;
-      border-radius: 10px;
-      border: none;
       background: #00ffff;
-      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
       cursor: pointer;
+      color: #000;
+      font-weight: bold;
     }
-    video {
-      width: 100%;
-      margin-top: 10px;
-      display: none;
+    button:hover {
+      background: #00dddd;
     }
   </style>
 </head>
 <body>
 
-  <h2>📝 Upload Quote or 🎥 Status</h2>
+  <h2>📤 Upload Content</h2>
 
-  <form id="uploadForm">
-    <textarea id="quoteText" placeholder="Enter your quote..."></textarea>
-    <input type="text" id="quoteAuthor" placeholder="Author (optional)" />
+  <select id="uploadType">
+    <option value="quote">Quote</option>
+    <option value="video">Video</option>
+  </select>
 
-    <p style="text-align:center;">OR</p>
+  <div id="quoteFields">
+    <textarea id="quoteText" placeholder="Write your quote..."></textarea>
+    <input type="text" id="quoteAuthor" placeholder="Author name (optional)" />
+  </div>
 
-    <input type="file" id="videoFile" accept="video/*" />
-    <video id="previewVideo" controls></video>
+  <div id="videoFields" style="display:none;">
+    <input type="text" id="videoUrl" placeholder="Video URL (mp4)" />
+    <input type="text" id="videoCaption" placeholder="Caption (optional)" />
+  </div>
 
-    <button type="submit">⏫ Upload</button>
-  </form>
+  <button id="uploadBtn">Upload</button>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import {
-      getAuth, onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import {
       getFirestore, collection, addDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
     import {
-      getStorage, ref, uploadBytes, getDownloadURL
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-storage.js";
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -92,59 +81,86 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
+    const auth = getAuth();
 
-    const form = document.getElementById("uploadForm");
-    const videoInput = document.getElementById("videoFile");
-    const previewVideo = document.getElementById("previewVideo");
+    const uploadType = document.getElementById("uploadType");
+    const quoteFields = document.getElementById("quoteFields");
+    const videoFields = document.getElementById("videoFields");
+    const uploadBtn = document.getElementById("uploadBtn");
 
-    videoInput.addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        previewVideo.src = URL.createObjectURL(file);
-        previewVideo.style.display = "block";
+    uploadType.addEventListener("change", () => {
+      if (uploadType.value === "quote") {
+        quoteFields.style.display = "block";
+        videoFields.style.display = "none";
+      } else {
+        quoteFields.style.display = "none";
+        videoFields.style.display = "block";
       }
     });
 
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         alert("Please login first");
-        window.location.href = "index.html";
+        window.location.href = "login.html";
+        return;
       }
-    });
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const quote = document.getElementById("quoteText").value.trim();
-      const author = document.getElementById("quoteAuthor").value.trim();
-      const video = videoInput.files[0];
+      uploadBtn.addEventListener("click", async () => {
+        const username = user.displayName || "anonymous";
+        const uid = user.uid;
 
-      if (quote !== "") {
-        await addDoc(collection(db, "quotes"), {
-          text: quote,
-          author,
-          timestamp: serverTimestamp()
-        });
-        alert("✅ Quote uploaded!");
-        form.reset();
-        previewVideo.style.display = "none";
-      } else if (video) {
-        const storageRef = ref(storage, "videos/" + video.name);
-        await uploadBytes(storageRef, video);
-        const url = await getDownloadURL(storageRef);
-        await addDoc(collection(db, "videos"), {
-          url,
-          caption: author,
-          timestamp: serverTimestamp()
-        });
-        alert("✅ Video uploaded!");
-        form.reset();
-        previewVideo.style.display = "none";
-      } else {
-        alert("Please enter a quote or select a video.");
-      }
+        if (uploadType.value === "quote") {
+          const text = document.getElementById("quoteText").value.trim();
+          const author = document.getElementById("quoteAuthor").value.trim();
+          if (!text) return alert("Quote cannot be empty");
+
+          await addDoc(collection(db, "quotes"), {
+            text,
+            author,
+            username,
+            uid,
+            timestamp: serverTimestamp()
+          });
+
+          await addDoc(collection(db, "notifications"), {
+            toUid: uid,
+            fromUser: username,
+            message: "You posted a new quote!",
+            type: "upload",
+            timestamp: serverTimestamp()
+          });
+
+          alert("Quote uploaded!");
+          document.getElementById("quoteText").value = "";
+          document.getElementById("quoteAuthor").value = "";
+
+        } else {
+          const url = document.getElementById("videoUrl").value.trim();
+          const caption = document.getElementById("videoCaption").value.trim();
+          if (!url) return alert("Video URL is required");
+
+          await addDoc(collection(db, "videos"), {
+            url,
+            caption,
+            username,
+            uid,
+            timestamp: serverTimestamp()
+          });
+
+          await addDoc(collection(db, "notifications"), {
+            toUid: uid,
+            fromUser: username,
+            message: "You posted a new video!",
+            type: "upload",
+            timestamp: serverTimestamp()
+          });
+
+          alert("Video uploaded!");
+          document.getElementById("videoUrl").value = "";
+          document.getElementById("videoCaption").value = "";
+        }
+      });
     });
   </script>
 
