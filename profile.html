@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Profile | AmoQuotes</title>
+  <title>Profile | AmoQuotes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
@@ -11,22 +11,35 @@
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
       padding: 20px;
-      padding-bottom: 70px;
     }
-    h2 {
+    .profile-header {
       text-align: center;
+      margin-bottom: 30px;
+    }
+    .profile-header h2 {
+      margin-bottom: 5px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
       margin-bottom: 20px;
     }
-    .content {
-      max-width: 600px;
-      margin: auto;
+    .stats div {
+      text-align: center;
+    }
+    .section-title {
+      font-size: 20px;
+      margin-top: 25px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
     }
     .card {
       background: rgba(255,255,255,0.05);
       border-radius: 15px;
       padding: 15px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      margin-bottom: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
     .quote-text {
       font-size: 18px;
@@ -34,68 +47,47 @@
     }
     .quote-author {
       font-size: 14px;
+      text-align: right;
       color: #ccc;
     }
     video {
       width: 100%;
       border-radius: 10px;
     }
-    .section-title {
-      font-size: 20px;
-      margin: 25px 0 10px;
-      border-bottom: 1px solid #555;
-      padding-bottom: 5px;
-    }
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      background: #1c1c3c;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 1px solid #444;
-    }
-    .bottom-nav button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .bottom-nav button:hover {
-      color: #00ffff;
-    }
   </style>
 </head>
 <body>
 
-  <h2>👤 My Uploads</h2>
-  <div class="content" id="profileContent">
-    <div class="section-title">📝 My Quotes</div>
-    <div id="myQuotes"></div>
-
-    <div class="section-title">🎥 My Videos</div>
-    <div id="myVideos"></div>
+  <div class="profile-header">
+    <h2 id="displayName">User Name</h2>
+    <div id="email" style="color:#bbb; font-size: 14px;"></div>
   </div>
 
-  <div class="bottom-nav">
-    <button onclick="location.href='home.html'">🏠 Home</button>
-    <button onclick="alert('Coming soon')">🔍 Search</button>
-    <button onclick="location.href='upload.html'">➕ Upload</button>
-    <button onclick="location.href='profile.html'">👤 Profile</button>
+  <div class="stats">
+    <div>
+      <div id="followers">0</div>
+      <small>Followers</small>
+    </div>
+    <div>
+      <div id="following">0</div>
+      <small>Following</small>
+    </div>
   </div>
+
+  <div class="section-title">📝 My Quotes</div>
+  <div id="quoteList"></div>
+
+  <div class="section-title">🎥 My Videos</div>
+  <div id="videoList"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import {
+      getFirestore, collection, query, where, getDocs, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import {
       getAuth, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-    import {
-      getFirestore, collection, query, where, getDocs, orderBy
-    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -108,47 +100,57 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
+    const auth = getAuth();
 
-    const quoteContainer = document.getElementById("myQuotes");
-    const videoContainer = document.getElementById("myVideos");
+    const quoteList = document.getElementById("quoteList");
+    const videoList = document.getElementById("videoList");
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         alert("Please login first");
-        window.location.href = "index.html";
+        window.location.href = "login.html";
         return;
       }
 
-      const uid = user.uid;
+      document.getElementById("displayName").innerText = user.displayName || "Anonymous";
+      document.getElementById("email").innerText = user.email;
+
+      // Followers / Following counts (from `users` collection)
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        document.getElementById("followers").innerText = data.followers?.length || 0;
+        document.getElementById("following").innerText = data.following?.length || 0;
+      }
 
       // Load user's quotes
-      const q = query(collection(db, "quotes"), where("uid", "==", uid), orderBy("timestamp", "desc"));
-      const quoteSnap = await getDocs(q);
+      const quoteQuery = query(collection(db, "quotes"), where("uid", "==", user.uid));
+      const quoteSnap = await getDocs(quoteQuery);
       quoteSnap.forEach(doc => {
-        const data = doc.data();
+        const q = doc.data();
         const div = document.createElement("div");
         div.className = "card";
         div.innerHTML = `
-          <div class="quote-text">“${data.text}”</div>
-          <div class="quote-author">— ${data.author || "Anonymous"}</div>
+          <div class="quote-text">“${q.text}”</div>
+          <div class="quote-author">— ${q.author || "Unknown"}</div>
         `;
-        quoteContainer.appendChild(div);
+        quoteList.appendChild(div);
       });
 
       // Load user's videos
-      const v = query(collection(db, "videos"), where("uid", "==", uid), orderBy("timestamp", "desc"));
-      const videoSnap = await getDocs(v);
+      const videoQuery = query(collection(db, "videos"), where("uid", "==", user.uid));
+      const videoSnap = await getDocs(videoQuery);
       videoSnap.forEach(doc => {
-        const data = doc.data();
+        const v = doc.data();
         const div = document.createElement("div");
         div.className = "card";
         div.innerHTML = `
-          <video src="${data.url}" controls></video>
-          <div class="quote-author">${data.caption || ""}</div>
+          <video src="${v.url}" controls></video>
+          <div class="quote-author">${v.caption || ""}</div>
         `;
-        videoContainer.appendChild(div);
+        videoList.appendChild(div);
       });
     });
   </script>
