@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Profile | AmoQuotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding: 20px;
+    }
+    .profile-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .profile-header h2 {
+      margin-bottom: 5px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 15px;
+    }
+    .stats div {
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #00ffff;
+      color: black;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 20px;
+      margin-top: 25px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .quote-text {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .quote-author {
+      font-size: 14px;
+      text-align: right;
+      color: #ccc;
+    }
+    video {
+      width: 100%;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="profile-header">
+    <h2 id="displayName">Loading...</h2>
+    <div class="stats">
+      <div><div id="followers">0</div><small>Followers</small></div>
+      <div><div id="following">0</div><small>Following</small></div>
+    </div>
+    <button id="followBtn">Follow</button>
+  </div>
+
+  <div class="section-title">📝 Quotes</div>
+  <div id="quoteList"></div>
+
+  <div class="section-title">🎥 Videos</div>
+  <div id="videoList"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore, collection, query, where, getDocs, doc, getDoc,
+      updateDoc, arrayUnion, arrayRemove, setDoc, addDoc, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import {
+      getAuth, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.firebasestorage.app",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUid = urlParams.get("uid");
+
+    const displayName = document.getElementById("displayName");
+    const followersCount = document.getElementById("followers");
+    const followingCount = document.getElementById("following");
+    const followBtn = document.getElementById("followBtn");
+
+    const quoteList = document.getElementById("quoteList");
+    const videoList = document.getElementById("videoList");
+
+    let currentUser;
+    let isFollowing = false;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Login required");
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+
+      // Load target user profile
+      const targetRef = doc(db, "users", targetUid);
+      let targetSnap = await getDoc(targetRef);
+      if (!targetSnap.exists()) {
+        await setDoc(targetRef, { followers: [], following: [] });
+        targetSnap = await getDoc(targetRef);
+      }
+      const targetData = targetSnap.data();
+      displayName.innerText = targetData.name || "User";
+
+      followersCount.innerText = targetData.followers?.length || 0;
+      followingCount.innerText = targetData.following?.length || 0;
+
+      // Check if already following
+      const currentRef = doc(db, "users", currentUser.uid);
+      let currentSnap = await getDoc(currentRef);
+      if (!currentSnap.exists()) {
+        await setDoc(currentRef, { followers: [], following: [] });
+        currentSnap = await getDoc(currentRef);
+      }
+      const currentData = currentSnap.data();
+      isFollowing = currentData.following?.includes(targetUid);
+      followBtn.innerText = isFollowing ? "Unfollow" : "Follow";
+
+      // Follow/Unfollow logic
+      followBtn.addEventListener("click", async () => {
+        if (isFollowing) {
+          await updateDoc(currentRef, {
+            following: arrayRemove(targetUid)
+          });
+          await updateDoc(targetRef, {
+            followers: arrayRemove(currentUser.uid)
+          });
+          followBtn.innerText = "Follow";
+          isFollowing = false;
+        } else {
+          await updateDoc(currentRef, {
+            following: arrayUnion(targetUid)
+          });
+          await updateDoc(targetRef, {
+            followers: arrayUnion(currentUser.uid)
+          });
+          await addDoc(collection(db, "notifications"), {
+            toUid: targetUid,
+            fromUser: currentUser.displayName,
+            message: "started following you!",
+            type: "follow",
+            timestamp: serverTimestamp()
+          });
+          followBtn.innerText = "Unfollow";
+          isFollowing = true;
+        }
+
+        // Update counts
+        const newSnap = await getDoc(targetRef);
+        followersCount.innerText = newSnap.data().followers?.length || 0;
+      });
+
+      // Load target's quotes
+      const qSnap = await getDocs(query(collection(db, "quotes"), where("uid", "==", targetUid)));
+      qSnap.forEach(doc => {
+        const q = doc.data();
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <div class="quote-text">“${q.text}”</div>
+          <div class="quote-author">— ${q.author || "Unknown"}</div>
+        `;
+        quoteList.appendChild(div);
+      });
+
+      // Load target's videos
+      const vSnap = await getDocs(query(collection(db, "videos"), where("uid", "==", targetUid)));
+      vSnap.forEach(doc => {
+        const v = doc.data();
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <video src="${v.url}" controls></video>
+          <div class="quote-author">${v.caption || ""}</div>
+        `;
+        videoList.appendChild(div);
+      });
+    });
+  </script>
+
+</body>
+</html>
