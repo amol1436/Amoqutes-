@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Amoqutes</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding-bottom: 80px;
+    }
+    .profile-header {
+      text-align: center;
+      padding: 30px 0;
+    }
+    .profile-pic {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid white;
+      object-fit: cover;
+    }
+    .user-info {
+      margin-top: 10px;
+    }
+    .content-section {
+      padding: 0 20px;
+    }
+    .card {
+      background: #ffffff10;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 12px;
+    }
+    .card img, .card video {
+      width: 100%;
+      border-radius: 10px;
+    }
+    .download-btn {
+      margin-top: 10px;
+      display: inline-block;
+      padding: 10px;
+      background: white;
+      color: #24243e;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .logout {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .logout button {
+      padding: 10px 20px;
+      background: crimson;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-header">
+    <img id="userPhoto" class="profile-pic" src="" alt="Profile Picture">
+    <div class="user-info">
+      <h2 id="userName">User Name</h2>
+      <p id="userEmail">email@example.com</p>
+    </div>
+  </div>  <div class="content-section">
+    <h3>Your Uploads</h3>
+    <div id="userContent"></div>
+  </div>  <div class="logout">
+    <button onclick="logout()">Logout</button>
+  </div>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.appspot.com",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return (window.location.href = "index.html");
+
+      document.getElementById("userPhoto").src = user.photoURL || "https://via.placeholder.com/100";
+      document.getElementById("userName").innerText = user.displayName || "User";
+      document.getElementById("userEmail").innerText = user.email;
+
+      const quotesQuery = query(collection(db, "quotes"), where("uid", "==", user.uid));
+      const reelsQuery = query(collection(db, "reels"), where("uid", "==", user.uid));
+
+      const quoteSnap = await getDocs(quotesQuery);
+      const reelSnap = await getDocs(reelsQuery);
+
+      const container = document.getElementById("userContent");
+
+      quoteSnap.forEach(docSnap => {
+        const q = docSnap.data();
+        container.innerHTML += `
+          <div class="card">
+            <img src="${q.image}" alt="Quote">
+            <a href="${q.image}" class="download-btn" download>Download</a>
+          </div>
+        `;
+      });
+
+      reelSnap.forEach(docSnap => {
+        const r = docSnap.data();
+        container.innerHTML += `
+          <div class="card">
+            <video src="${r.videoUrl}" controls></video>
+            <a href="${r.videoUrl}" class="download-btn" download>Download</a>
+          </div>
+        `;
+      });
+    });
+
+    window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
+  </script></body>
+</html>
