@@ -79,7 +79,8 @@
   </div>  <!-- Hidden File Input -->  <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileUpload(event)" />  <!-- Bottom Navigation -->  <div class="bottom-nav">
     <button onclick="alert('Home')">🏠</button>
     <button onclick="alert('Reels')">🎥</button>
-    <button onclick="document.getElementById('fileInput').click()">➕</button>
+    <!-- Updated ➕ -->
+<button onclick="openUploadModal()">➕</button>
     <button onclick="alert('Search')">🔍</button>
     <button onclick="window.location.href='profile.html'">👤</button>
   </div>  <script type="module">
