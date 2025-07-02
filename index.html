@@ -1,63 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Amoqutes - Login/Signup</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amoqutes - Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      background: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       min-height: 100vh;
+      padding: 30px 20px;
       color: white;
     }
+
+    .logo {
+      margin-top: 20px;
+      margin-bottom: 30px;
+    }
+
     .logo img {
       height: 80px;
-      margin-bottom: 20px;
-    }
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 30px;
-      background-color: rgba(255, 255, 255, 0.05);
-      padding: 30px;
+      width: 80px;
       border-radius: 20px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      display: block;
+      margin: 0 auto;
+      background-color: transparent;
     }
-    .box {
-      background-color: rgba(0,0,0,0.3);
-      padding: 20px;
-      border-radius: 15px;
-      width: 280px;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    input {
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px 20px;
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
+      max-width: 400px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
+
+    .card h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
     button {
       width: 100%;
-      padding: 12px;
-      margin-top: 10px;
+      padding: 14px;
       border: none;
-      background-color: #1db954;
+      border-radius: 30px;
+      background-color: #00c853;
       color: white;
+      font-size: 16px;
       font-weight: bold;
-      border-radius: 25px;
+      margin-bottom: 15px;
       cursor: pointer;
     }
+
     .google-btn {
       background: white;
       color: #333;
@@ -65,92 +79,51 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      margin-top: 10px;
+      border-radius: 30px;
+      font-weight: 500;
     }
+
     .google-btn img {
-      width: 20px;
+      height: 20px;
+    }
+
+    .card p {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .card a {
+      color: #00e676;
+      text-decoration: none;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
 
   <div class="logo">
-    <img src="https://raw.githubusercontent.com/amol1436/Amoqutes-/main/IMG_20250702_115332.png" alt="Amoqutes Logo"/>
+    <img src="https://raw.githubusercontent.com/amol1436/Amoqutes-/main/IMG_20250702_115332.png" alt="Amoqutes Logo">
   </div>
 
-  <div class="container">
-    <!-- Login Form -->
-    <div class="box">
-      <h2>Login to Amoqutes</h2>
-      <input type="email" id="loginEmail" placeholder="Email" />
-      <input type="password" id="loginPassword" placeholder="Password" />
-      <button onclick="login()">Login</button>
-      <button class="google-btn" onclick="googleLogin()">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" />
-        Continue with Google
-      </button>
-    </div>
-
-    <!-- Signup Form -->
-    <div class="box">
-      <h2>Create an Account</h2>
-      <input type="email" id="signupEmail" placeholder="Email" />
-      <input type="password" id="signupPassword" placeholder="Password" />
-      <button onclick="signup()">Sign Up</button>
-    </div>
+  <div class="card">
+    <h2>Login to Amoqutes</h2>
+    <input type="email" placeholder="Email">
+    <input type="password" placeholder="Password">
+    <button>Login</button>
+    <button class="google-btn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google Icon">
+      Continue with Google
+    </button>
+    <p>Don't have an account? <a href="#signup">Sign up</a></p>
   </div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      signInWithPopup,
-      GoogleAuthProvider
-    } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js";
+  <div class="card" id="signup">
+    <h2>Create an Account</h2>
+    <input type="email" placeholder="Email">
+    <input type="password" placeholder="Password">
+    <button>Sign Up</button>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
-      authDomain: "amoqutes.firebaseapp.com",
-      projectId: "amoqutes",
-      storageBucket: "amoqutes.firebasestorage.app",
-      messagingSenderId: "817694015009",
-      appId: "1:817694015009:web:488c55ad3b834036882d60"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    window.login = () => {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
-      signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          window.location.href = "index.html";
-        })
-        .catch((error) => alert(error.message));
-    };
-
-    window.signup = () => {
-      const email = document.getElementById("signupEmail").value;
-      const password = document.getElementById("signupPassword").value;
-      createUserWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          window.location.href = "index.html";
-        })
-        .catch((error) => alert(error.message));
-    };
-
-    window.googleLogin = () => {
-      signInWithPopup(auth, provider)
-        .then(() => {
-          window.location.href = "index.html";
-        })
-        .catch((error) => alert(error.message));
-    };
-  </script>
 </body>
 </html>
