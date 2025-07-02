@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Reel - Amoqutes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 30px;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      text-align: center;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: linear-gradient(to right, #ff0080, #ff8c00);
+      color: white;
+      box-shadow: 0 0 10px #ff0080;
+      margin-top: 10px;
+    }
+
+    h2 {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎥 Upload a Reel</h2>
+
+    <input type="file" id="reelVideo" accept="video/mp4" />
+    <textarea id="caption" placeholder="Write a caption..." rows="3"></textarea>
+
+    <select id="category">
+      <option value="">Select Category</option>
+      <option value="Love">Love</option>
+      <option value="Sad">Sad</option>
+      <option value="Motivational">Motivational</option>
+    </select>
+
+    <select id="language">
+      <option value="">Select Language</option>
+      <option value="Hindi">Hindi</option>
+      <option value="Marathi">Marathi</option>
+      <option value="English">English</option>
+    </select>
+
+    <button onclick="uploadReel()">Upload Reel</button>
+  </div>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.appspot.com",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        alert("Please log in to upload.");
+        window.location.href = "index.html";
+      }
+    });
+
+    window.uploadReel = async () => {
+      const file = document.getElementById("reelVideo").files[0];
+      const caption = document.getElementById("caption").value;
+      const category = document.getElementById("category").value;
+      const language = document.getElementById("language").value;
+
+      if (!file || !caption || !category || !language) {
+        alert("Please fill all fields and select a video.");
+        return;
+      }
+
+      const filename = `reels/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, filename);
+
+      try {
+        const snapshot = await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(snapshot.ref);
+
+        await addDoc(collection(db, "reels"), {
+          caption,
+          category,
+          language,
+          videoUrl: downloadURL,
+          createdAt: new Date()
+        });
+
+        alert("✅ Reel uploaded successfully!");
+        document.getElementById("caption").value = "";
+        document.getElementById("category").value = "";
+        document.getElementById("language").value = "";
+        document.getElementById("reelVideo").value = "";
+      } catch (error) {
+        alert("❌ Upload failed: " + error.message);
+      }
+    };
+  </script>
+</body>
+</html>
