@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Amoqutes - Home</title>
@@ -10,48 +11,16 @@
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
     }
-    .uploadBtn {
-      position: fixed;
-      bottom: 80px;
-      right: 20px;
-      background: linear-gradient(to right, #ff0080, #ff8c00);
-      color: white;
-      font-size: 24px;
-      border: none;
-      border-radius: 50%;
-      width: 56px;
-      height: 56px;
-      box-shadow: 0 0 12px #ff0080;
-      cursor: pointer;
-    }
-    #uploadDialog {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .upload-box {
-      background: white;
-      color: black;
-      padding: 20px;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 400px;
-    }
-    .hidden { display: none; }
     .bottom-nav {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background: #00000080;
+      height: 60px;
+      background: #000000c0;
       display: flex;
       justify-content: space-around;
-      padding: 10px 0;
+      align-items: center;
+      border-top: 1px solid #444;
       backdrop-filter: blur(10px);
     }
     .bottom-nav button {
@@ -61,112 +30,97 @@
       font-size: 24px;
       cursor: pointer;
     }
-    textarea, input, select {
-      width: 100%;
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    #fileInput {
+      display: none;
     }
-    button.upload {
-      background: #302b63;
-      color: white;
-      padding: 10px;
-      width: 100%;
-      border-radius: 8px;
+    .feed {
+      padding: 80px 20px 80px 20px;
+    }
+    .card {
+      background: #ffffff10;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+    }
+    .card img, .card video {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+    .card p {
       margin-top: 10px;
-      font-weight: bold;
-      cursor: pointer;
+      font-size: 18px;
     }
   </style>
 </head>
-<body>  <!-- Upload Button --><button class="uploadBtn" onclick="openUploadDialog()">+</button>
+<body>
 
-  <!-- Upload Dialog -->  <div id="uploadDialog" class="hidden">
-    <div class="upload-box">
-      <h3>Upload Content</h3>
-      <select id="uploadType" onchange="toggleUploadFields()">
-        <option value="">Select Type</option>
-        <option value="quote">Quote</option>
-        <option value="reel">Reel</option>
-      </select><div id="quoteFields" class="hidden">
-    <textarea id="quoteText" placeholder="Write your quote..."></textarea>
-    <input type="file" id="quoteImage" accept="image/*" />
-  </div>
-
-  <div id="reelFields" class="hidden">
-    <input type="file" id="reelVideo" accept="video/mp4" />
-    <input type="text" id="reelCaption" placeholder="Reel caption" />
-  </div>
-
-  <button class="upload" onclick="uploadContent()">Upload</button>
-  <button class="upload" onclick="closeUploadDialog()">Cancel</button>
-</div>
-
-  </div>  <!-- Bottom Navigation -->  <div class="bottom-nav">
-    <button onclick="alert('Home')">🏠</button>
-    <button onclick="alert('Reels')">🎥</button>
-    <button onclick="alert('Search')">🔍</button>
-    <button onclick="alert('Profile')">👤</button>
-  </div>  <!-- Feed Section -->  <div id="feed" style="padding: 80px 20px 100px 20px">
+  <!-- Feed -->
+  <div class="feed">
     <h2 style="text-align:center;">Quotes & Reels Feed</h2>
     <div id="contentList"></div>
-  </div>  <script type="module">
+  </div>
+
+  <!-- Hidden File Input -->
+  <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileUpload(event)" />
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <button onclick="alert('Home')">🏠</button>
+    <button onclick="alert('Reels')">🎥</button>
+    <button onclick="document.getElementById('fileInput').click()">➕</button>
+    <button onclick="alert('Search')">🔍</button>
+    <button onclick="alert('Profile')">👤</button>
+  </div>
+
+  <script type="module">
     import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 
-    const db = getFirestore();
-    const storage = getStorage();
-    const auth = getAuth();
-
-    window.uploadContent = async () => {
-      const type = document.getElementById("uploadType").value;
-      const user = auth.currentUser;
-      if (!type || !user) return alert("Select type and login required");
-
-      if (type === "quote") {
-        const text = document.getElementById("quoteText").value;
-        const image = document.getElementById("quoteImage").files[0];
-        let imageUrl = "";
-
-        if (image) {
-          const imgRef = ref(storage, `quote_images/${Date.now()}_${image.name}`);
-          const snapshot = await uploadBytes(imgRef, image);
-          imageUrl = await getDownloadURL(snapshot.ref);
-        }
-
-        await addDoc(collection(db, "quotes"), {
-          text,
-          image: imageUrl,
-          uid: user.uid,
-          createdAt: new Date()
-        });
-        alert("✅ Quote uploaded!");
-      }
-
-      if (type === "reel") {
-        const caption = document.getElementById("reelCaption").value;
-        const video = document.getElementById("reelVideo").files[0];
-        if (!video) return alert("Select a video");
-
-        const vidRef = ref(storage, `reels/${Date.now()}_${video.name}`);
-        const snap = await uploadBytes(vidRef, video);
-        const videoUrl = await getDownloadURL(snap.ref);
-
-        await addDoc(collection(db, "reels"), {
-          caption,
-          videoUrl,
-          uid: user.uid,
-          createdAt: new Date()
-        });
-
-        alert("✅ Reel uploaded!");
-      }
-
-      closeUploadDialog();
-      loadFeed();
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.appspot.com",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
     };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const auth = getAuth(app);
+
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const user = auth.currentUser;
+      if (!user) return alert("Please login first");
+
+      const isVideo = file.type.startsWith("video");
+      const storageRef = ref(storage, `${isVideo ? 'reels' : 'quote_images'}/${Date.now()}_${file.name}`);
+      const snap = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(snap.ref);
+
+      if (isVideo) {
+        await addDoc(collection(db, "reels"), {
+          videoUrl: url,
+          caption: "",
+          uid: user.uid,
+          createdAt: new Date()
+        });
+      } else {
+        await addDoc(collection(db, "quotes"), {
+          text: "",
+          image: url,
+          uid: user.uid,
+          createdAt: new Date()
+        });
+      }
+      loadFeed();
+    }
 
     async function loadFeed() {
       const contentList = document.getElementById("contentList");
@@ -176,9 +130,9 @@
       quoteSnap.forEach(doc => {
         const q = doc.data();
         contentList.innerHTML += `
-          <div style="margin-bottom:20px;padding:15px;background:#ffffff10;border-radius:12px;">
-            ${q.image ? `<img src="${q.image}" style="max-width:100%;border-radius:10px;" /><br/>` : ''}
-            <p style="margin-top:10px;font-size:18px;">${q.text}</p>
+          <div class="card">
+            ${q.image ? `<img src="${q.image}" />` : ''}
+            <p>${q.text || ''}</p>
           </div>
         `;
       });
@@ -187,31 +141,15 @@
       reelSnap.forEach(doc => {
         const r = doc.data();
         contentList.innerHTML += `
-          <div style="margin-bottom:20px;padding:15px;background:#ffffff10;border-radius:12px;">
-            <video src="${r.videoUrl}" controls style="width:100%;border-radius:10px;"></video>
-            <p style="margin-top:10px;font-size:18px;">${r.caption}</p>
+          <div class="card">
+            <video src="${r.videoUrl}" controls></video>
+            <p>${r.caption || ''}</p>
           </div>
         `;
       });
     }
 
     loadFeed();
-  </script>  <script>
-    function openUploadDialog() {
-      document.getElementById('uploadDialog').classList.remove('hidden');
-    }
-    function closeUploadDialog() {
-      document.getElementById('uploadDialog').classList.add('hidden');
-    }
-    function toggleUploadFields() {
-      const type = document.getElementById("uploadType").value;
-      document.getElementById("quoteFields").classList.add("hidden");
-      document.getElementById("reelFields").classList.add("hidden");
-      if (type === "quote") {
-        document.getElementById("quoteFields").classList.remove("hidden");
-      } else if (type === "reel") {
-        document.getElementById("reelFields").classList.remove("hidden");
-      }
-    }
-  </script></body>
+  </script>
+</body>
 </html>
