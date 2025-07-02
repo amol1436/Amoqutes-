@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Preferences - Amoqutes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 24px;
+      margin: 20px 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.07);
+      padding: 20px;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .card:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .card.selected {
+      border-color: #00e676;
+      box-shadow: 0 0 10px #00e676;
+    }
+
+    .continue-btn {
+      margin-top: 30px;
+      padding: 15px 30px;
+      border: none;
+      background: #00c853;
+      color: white;
+      font-size: 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: bold;
+    }
+
+    .continue-btn:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Tell us what you like 💖</h2>
+
+  <div class="grid" id="categoryGrid">
+    <div class="card">Love 💕</div>
+    <div class="card">Sad 😢</div>
+    <div class="card">Romantic ❤️</div>
+    <div class="card">Attitude 😎</div>
+    <div class="card">Motivational 🔥</div>
+    <div class="card">Reels 🎥</div>
+    <div class="card">Status 📱</div>
+    <div class="card">Shayari ✍️</div>
+    <div class="card">Breakup 💔</div>
+    <div class="card">Friendship 👯</div>
+  </div>
+
+  <button class="continue-btn" id="continueBtn" disabled>Continue</button>
+
+  <script>
+    const cards = document.querySelectorAll('.card');
+    const continueBtn = document.getElementById('continueBtn');
+    const selected = new Set();
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const value = card.textContent.trim();
+        if (card.classList.contains('selected')) {
+          selected.delete(value);
+          card.classList.remove('selected');
+        } else {
+          selected.add(value);
+          card.classList.add('selected');
+        }
+
+        continueBtn.disabled = selected.size < 3;
+      });
+    });
+
+    continueBtn.addEventListener('click', () => {
+      const preferences = Array.from(selected);
+      console.log('Selected:', preferences);
+      // TODO: Firebase save here
+      // Then redirect to quotes.html
+      window.location.href = "quotes.html";
+    });
+  </script>
+
+</body>
+</html>
