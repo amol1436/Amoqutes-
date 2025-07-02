@@ -59,11 +59,15 @@
       cursor: pointer;
       font-size: 18px;
     }
-    .comment-box {
-      background: #ffffff20;
-      padding: 10px;
+    .download-btn {
       margin-top: 10px;
+      display: inline-block;
+      padding: 10px;
+      background: white;
+      color: #24243e;
       border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -77,7 +81,7 @@
     <button onclick="alert('Reels')">🎥</button>
     <button onclick="document.getElementById('fileInput').click()">➕</button>
     <button onclick="alert('Search')">🔍</button>
-    <button onclick="alert('Profile')">👤</button>
+    <button onclick="window.location.href='profile.html'">👤</button>
   </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, updateDoc, increment, doc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
@@ -161,12 +165,12 @@
         contentList.innerHTML += `
           <div class="card">
             ${q.image ? `<img src="${q.image}" />` : ''}
-            <p>${q.text || ''}</p>
             <div class="actions">
               <span onclick="likePost('${docSnap.id}', 'quotes')">❤️ ${q.likes || 0}</span>
               <span onclick="commentPost('${docSnap.id}', 'quotes')">💬 ${q.comments?.length || 0}</span>
               <span onclick="sharePost('${docSnap.id}')">🔗</span>
             </div>
+            <a href="${q.image}" class="download-btn" download>Download</a>
           </div>
         `;
       });
@@ -177,12 +181,12 @@
         contentList.innerHTML += `
           <div class="card">
             <video src="${r.videoUrl}" controls></video>
-            <p>${r.caption || ''}</p>
             <div class="actions">
               <span onclick="likePost('${docSnap.id}', 'reels')">❤️ ${r.likes || 0}</span>
               <span onclick="commentPost('${docSnap.id}', 'reels')">💬 ${r.comments?.length || 0}</span>
               <span onclick="sharePost('${docSnap.id}')">🔗</span>
             </div>
+            <a href="${r.videoUrl}" class="download-btn" download>Download</a>
           </div>
         `;
       });
