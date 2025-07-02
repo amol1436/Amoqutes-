@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Amoqutes - Quotes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    h2 {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+
+    /* Bottom Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-around;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px 0;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-item {
+      color: white;
+      font-size: 14px;
+      text-align: center;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    .nav-item.active {
+      font-weight: bold;
+      color: #00e676;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="content">
+    <!-- Quotes Section -->
+    <div id="quotesSection" class="section active">
+      <h2>💬 Your Quotes</h2>
+      <div class="card">"Love is not what you say, love is what you do."</div>
+      <div class="card">"Breakups hurt, but losing yourself is worse."</div>
+      <div class="card">"Sadness flies away on the wings of time."</div>
+    </div>
+
+    <!-- Reels Section -->
+    <div id="reelsSection" class="section">
+      <h2>🎥 Reels</h2>
+      <div class="card">[Reel 1 Placeholder]</div>
+      <div class="card">[Reel 2 Placeholder]</div>
+      <div class="card">[Reel 3 Placeholder]</div>
+    </div>
+
+    <!-- Profile Section -->
+    <div id="profileSection" class="section">
+      <h2>👤 Your Profile</h2>
+      <div class="card">Email: user@example.com</div>
+      <div class="card">Preferences: Love, Sad, Reels</div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="navbar">
+    <div class="nav-item active" onclick="switchTab('quotes')">💬 Quotes</div>
+    <div class="nav-item" onclick="switchTab('reels')">🎥 Reels</div>
+    <div class="nav-item" onclick="switchTab('profile')">👤 Profile</div>
+  </div>
+
+  <script>
+    const tabs = {
+      quotes: document.getElementById('quotesSection'),
+      reels: document.getElementById('reelsSection'),
+      profile: document.getElementById('profileSection')
+    };
+
+    const navItems = document.querySelectorAll('.nav-item');
+
+    function switchTab(tab) {
+      for (let key in tabs) {
+        tabs[key].classList.remove('active');
+      }
+      tabs[tab].classList.add('active');
+
+      navItems.forEach(item => item.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>
