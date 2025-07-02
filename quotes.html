@@ -1,128 +1,184 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Amoqutes - Quotes</title>
+  <title>Amoqutes - Home</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
     }
-
-    .content {
-      flex: 1;
+    .uploadBtn {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background: linear-gradient(to right, #ff0080, #ff8c00);
+      color: white;
+      font-size: 24px;
+      border: none;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      box-shadow: 0 0 12px #ff0080;
+      cursor: pointer;
+    }
+    #uploadDialog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .upload-box {
+      background: white;
+      color: black;
       padding: 20px;
-      overflow-y: auto;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 400px;
     }
-
-    .section {
-      display: none;
-    }
-
-    .section.active {
-      display: block;
-    }
-
-    h2 {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 15px;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-    }
-
-    /* Bottom Navbar */
-    .navbar {
-      display: flex;
-      justify-content: space-around;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 10px 0;
+    .hidden { display: none; }
+    .bottom-nav {
       position: fixed;
       bottom: 0;
       width: 100%;
+      background: #00000080;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
       backdrop-filter: blur(10px);
     }
-
-    .nav-item {
+    .bottom-nav button {
+      background: none;
+      border: none;
       color: white;
-      font-size: 14px;
-      text-align: center;
+      font-size: 24px;
       cursor: pointer;
-      flex: 1;
     }
-
-    .nav-item.active {
+    textarea, input, select {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button.upload {
+      background: #302b63;
+      color: white;
+      padding: 10px;
+      width: 100%;
+      border-radius: 8px;
+      margin-top: 10px;
       font-weight: bold;
-      color: #00e676;
+      cursor: pointer;
     }
   </style>
 </head>
-<body>
+<body>  <!-- Upload Button --><button class="uploadBtn" onclick="openUploadDialog()">+</button>
 
-  <div class="content">
-    <!-- Quotes Section -->
-    <div id="quotesSection" class="section active">
-      <h2>💬 Your Quotes</h2>
-      <div class="card">"Love is not what you say, love is what you do."</div>
-      <div class="card">"Breakups hurt, but losing yourself is worse."</div>
-      <div class="card">"Sadness flies away on the wings of time."</div>
-    </div>
-
-    <!-- Reels Section -->
-    <div id="reelsSection" class="section">
-      <h2>🎥 Reels</h2>
-      <div class="card">[Reel 1 Placeholder]</div>
-      <div class="card">[Reel 2 Placeholder]</div>
-      <div class="card">[Reel 3 Placeholder]</div>
-    </div>
-
-    <!-- Profile Section -->
-    <div id="profileSection" class="section">
-      <h2>👤 Your Profile</h2>
-      <div class="card">Email: user@example.com</div>
-      <div class="card">Preferences: Love, Sad, Reels</div>
-    </div>
+  <!-- Upload Dialog -->  <div id="uploadDialog" class="hidden">
+    <div class="upload-box">
+      <h3>Upload Content</h3>
+      <select id="uploadType" onchange="toggleUploadFields()">
+        <option value="">Select Type</option>
+        <option value="quote">Quote</option>
+        <option value="reel">Reel</option>
+      </select><div id="quoteFields" class="hidden">
+    <textarea id="quoteText" placeholder="Write your quote..."></textarea>
+    <input type="file" id="quoteImage" accept="image/*" />
   </div>
 
-  <!-- Bottom Nav -->
-  <div class="navbar">
-    <div class="nav-item active" onclick="switchTab('quotes')">💬 Quotes</div>
-    <div class="nav-item" onclick="switchTab('reels')">🎥 Reels</div>
-    <div class="nav-item" onclick="switchTab('profile')">👤 Profile</div>
+  <div id="reelFields" class="hidden">
+    <input type="file" id="reelVideo" accept="video/mp4" />
+    <input type="text" id="reelCaption" placeholder="Reel caption" />
   </div>
 
-  <script>
-    const tabs = {
-      quotes: document.getElementById('quotesSection'),
-      reels: document.getElementById('reelsSection'),
-      profile: document.getElementById('profileSection')
-    };
+  <button class="upload" onclick="uploadContent()">Upload</button>
+  <button class="upload" onclick="closeUploadDialog()">Cancel</button>
+</div>
 
-    const navItems = document.querySelectorAll('.nav-item');
+  </div>  <!-- Bottom Navigation -->  <div class="bottom-nav">
+    <button onclick="alert('Home')">🏠</button>
+    <button onclick="alert('Reels')">🎥</button>
+    <button onclick="alert('Search')">🔍</button>
+    <button onclick="alert('Profile')">👤</button>
+  </div>  <script type="module">
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-    function switchTab(tab) {
-      for (let key in tabs) {
-        tabs[key].classList.remove('active');
+    const db = getFirestore();
+    const storage = getStorage();
+    const auth = getAuth();
+
+    window.uploadContent = async () => {
+      const type = document.getElementById("uploadType").value;
+      const user = auth.currentUser;
+      if (!type || !user) return alert("Select type and login required");
+
+      if (type === "quote") {
+        const text = document.getElementById("quoteText").value;
+        const image = document.getElementById("quoteImage").files[0];
+        let imageUrl = "";
+
+        if (image) {
+          const imgRef = ref(storage, `quote_images/${Date.now()}_${image.name}`);
+          const snapshot = await uploadBytes(imgRef, image);
+          imageUrl = await getDownloadURL(snapshot.ref);
+        }
+
+        await addDoc(collection(db, "quotes"), {
+          text,
+          image: imageUrl,
+          uid: user.uid,
+          createdAt: new Date()
+        });
+        alert("✅ Quote uploaded!");
       }
-      tabs[tab].classList.add('active');
 
-      navItems.forEach(item => item.classList.remove('active'));
-      event.target.classList.add('active');
+      if (type === "reel") {
+        const caption = document.getElementById("reelCaption").value;
+        const video = document.getElementById("reelVideo").files[0];
+        if (!video) return alert("Select a video");
+
+        const vidRef = ref(storage, `reels/${Date.now()}_${video.name}`);
+        const snap = await uploadBytes(vidRef, video);
+        const videoUrl = await getDownloadURL(snap.ref);
+
+        await addDoc(collection(db, "reels"), {
+          caption,
+          videoUrl,
+          uid: user.uid,
+          createdAt: new Date()
+        });
+
+        alert("✅ Reel uploaded!");
+      }
+
+      closeUploadDialog();
+    };
+  </script>  <script>
+    function openUploadDialog() {
+      document.getElementById('uploadDialog').classList.remove('hidden');
     }
-  </script>
-
-</body>
+    function closeUploadDialog() {
+      document.getElementById('uploadDialog').classList.add('hidden');
+    }
+    function toggleUploadFields() {
+      const type = document.getElementById("uploadType").value;
+      document.getElementById("quoteFields").classList.add("hidden");
+      document.getElementById("reelFields").classList.add("hidden");
+      if (type === "quote") {
+        document.getElementById("quoteFields").classList.remove("hidden");
+      } else if (type === "reel") {
+        document.getElementById("reelFields").classList.remove("hidden");
+      }
+    }
+  </script></body>
 </html>
