@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search - Amoqutes</title>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding-bottom: 70px;
+    }
+
+    .search-bar {
+      padding: 15px;
+      display: flex;
+      justify-content: center;
+      background: #000;
+    }
+
+    .search-bar input {
+      width: 90%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+
+    .feed {
+      padding: 15px;
+    }
+
+    .card {
+      background: #ffffff10;
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+    }
+
+    .card img, .card video {
+      width: 100%;
+      border-radius: 10px;
+    }
+
+    .caption {
+      margin-top: 8px;
+      font-size: 15px;
+      opacity: 0.85;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #000;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+
+    .nav-item {
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .nav-item svg {
+      stroke: white;
+      width: 26px;
+      height: 26px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search hashtags or captions..." oninput="performSearch()" />
+  </div>
+
+  <div class="feed" id="searchResults"></div>
+
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="window.location.href='home.html'">
+      <i data-feather="home"></i>
+    </div>
+    <div class="nav-item" onclick="window.location.href='search.html'">
+      <i data-feather="search"></i>
+    </div>
+    <div class="nav-item" onclick="window.location.href='profile.html'">
+      <i data-feather="user"></i>
+    </div>
+  </div>
+
+  <script>
+    feather.replace();
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.appspot.com",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let allPosts = [];
+
+    async function loadAllPosts() {
+      const quoteSnap = await getDocs(collection(db, "quotes"));
+      quoteSnap.forEach(doc => {
+        allPosts.push({ ...doc.data(), type: 'image' });
+      });
+
+      const reelSnap = await getDocs(collection(db, "reels"));
+      reelSnap.forEach(doc => {
+        allPosts.push({ ...doc.data(), type: 'video' });
+      });
+
+      renderPosts(allPosts);
+    }
+
+    function renderPosts(posts) {
+      const container = document.getElementById("searchResults");
+      container.innerHTML = "";
+      posts.forEach(post => {
+        container.innerHTML += `
+          <div class="card">
+            ${post.type === 'video' ? `<video src="${post.videoUrl}" controls></video>` : `<img src="${post.image}" />`}
+            ${post.caption ? `<div class="caption">${post.caption}</div>` : ""}
+          </div>
+        `;
+      });
+    }
+
+    window.performSearch = function() {
+      const keyword = document.getElementById("searchInput").value.toLowerCase();
+      const filtered = allPosts.filter(post =>
+        (post.caption || "").toLowerCase().includes(keyword)
+      );
+      renderPosts(filtered);
+    };
+
+    loadAllPosts();
+  </script>
+</body>
+</html>
