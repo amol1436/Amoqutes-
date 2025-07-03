@@ -1,84 +1,140 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Profile - Amoqutes</title>
+  <meta charset="UTF-8" />
+  <title>Profile - Amoqutes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      padding-bottom: 80px;
     }
+
+    .navbar {
+      height: 60px;
+      background: #000;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 20px;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .menu-icon {
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: #1a1a2e;
+      border: 1px solid #444;
+      border-radius: 10px;
+      z-index: 10;
+      min-width: 160px;
+    }
+
+    .dropdown-menu button {
+      background: none;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      text-align: left;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .dropdown-menu button:hover {
+      background-color: #333;
+    }
+
     .profile-header {
       text-align: center;
-      padding: 30px 0;
+      padding: 30px 20px 10px;
     }
+
     .profile-pic {
       width: 100px;
       height: 100px;
       border-radius: 50%;
       border: 3px solid white;
       object-fit: cover;
+      margin-bottom: 10px;
     }
-    .user-info {
-      margin-top: 10px;
-    }
-    .content-section {
-      padding: 0 20px;
-    }
-    .card {
-      background: #ffffff10;
-      padding: 15px;
-      margin: 20px 0;
-      border-radius: 12px;
-    }
-    .card img, .card video {
-      width: 100%;
-      border-radius: 10px;
-    }
-    .download-btn {
-      margin-top: 10px;
-      display: inline-block;
-      padding: 10px;
-      background: white;
-      color: #24243e;
-      border-radius: 10px;
-      text-decoration: none;
+
+    .username {
+      font-size: 22px;
+      margin-bottom: 5px;
       font-weight: bold;
     }
-    .logout {
-      margin-top: 20px;
-      text-align: center;
+
+    .post-count {
+      font-size: 14px;
+      opacity: 0.7;
     }
-    .logout button {
-      padding: 10px 20px;
-      background: crimson;
-      border: none;
-      color: white;
-      font-size: 16px;
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      padding: 10px;
+    }
+
+    .grid-item img, .grid-item video {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
       border-radius: 8px;
-      cursor: pointer;
+    }
+
+    body.dark-theme {
+      background: #000;
+      color: #fff;
     }
   </style>
 </head>
 <body>
-  <div class="profile-header">
-    <img id="userPhoto" class="profile-pic" src="" alt="Profile Picture">
-    <div class="user-info">
-      <h2 id="userName">User Name</h2>
-      <p id="userEmail">email@example.com</p>
+  <div class="navbar">
+    Profile
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    <div class="dropdown-menu" id="dropdownMenu">
+      <button onclick="openSavedPosts()">💾 Saved Posts</button>
+      <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+      <button onclick="logout()">🚪 Logout</button>
     </div>
-  </div>  <div class="content-section">
-    <h3>Your Uploads</h3>
-    <div id="userContent"></div>
-  </div>  <div class="logout">
-    <button onclick="logout()">Logout</button>
-  </div>  <script type="module">
+  </div>
+
+  <div class="profile-header">
+    <img src="https://via.placeholder.com/100" alt="Profile Pic" id="profilePic" class="profile-pic" />
+    <div class="username" id="username">Loading...</div>
+    <div class="post-count" id="postCount">Posts: 0</div>
+  </div>
+
+  <div class="grid" id="userPosts"></div>
+
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -95,41 +151,55 @@
     const db = getFirestore(app);
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return (window.location.href = "index.html");
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
 
-      document.getElementById("userPhoto").src = user.photoURL || "https://via.placeholder.com/100";
-      document.getElementById("userName").innerText = user.displayName || "User";
-      document.getElementById("userEmail").innerText = user.email;
+      document.getElementById("username").innerText = user.displayName || user.email;
+      if (user.photoURL) {
+        document.getElementById("profilePic").src = user.photoURL;
+      }
 
-      const quotesQuery = query(collection(db, "quotes"), where("uid", "==", user.uid));
-      const reelsQuery = query(collection(db, "reels"), where("uid", "==", user.uid));
+      const postContainer = document.getElementById("userPosts");
+      let count = 0;
 
-      const quoteSnap = await getDocs(quotesQuery);
-      const reelSnap = await getDocs(reelsQuery);
-
-      const container = document.getElementById("userContent");
-
-      quoteSnap.forEach(docSnap => {
-        const q = docSnap.data();
-        container.innerHTML += `
-          <div class="card">
-            <img src="${q.image}" alt="Quote">
-            <a href="${q.image}" class="download-btn" download>Download</a>
-          </div>
-        `;
+      const quoteSnap = await getDocs(query(collection(db, "quotes"), where("uid", "==", user.uid)));
+      quoteSnap.forEach(doc => {
+        const data = doc.data();
+        postContainer.innerHTML += `<div class="grid-item"><img src="${data.image}" /></div>`;
+        count++;
       });
 
-      reelSnap.forEach(docSnap => {
-        const r = docSnap.data();
-        container.innerHTML += `
-          <div class="card">
-            <video src="${r.videoUrl}" controls></video>
-            <a href="${r.videoUrl}" class="download-btn" download>Download</a>
-          </div>
-        `;
+      const reelSnap = await getDocs(query(collection(db, "reels"), where("uid", "==", user.uid)));
+      reelSnap.forEach(doc => {
+        const data = doc.data();
+        postContainer.innerHTML += `<div class="grid-item"><video src="${data.videoUrl}" controls></video></div>`;
+        count++;
       });
+
+      document.getElementById("postCount").innerText = `Posts: ${count}`;
     });
 
-    window.logout = () => signOut(auth).then(() => window.location.href = "index.html");
-  </script></body>
+    // Dropdown Menu Controls
+    window.toggleMenu = () => {
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    };
+
+    window.logout = () => {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    };
+
+    window.toggleDarkMode = () => {
+      document.body.classList.toggle("dark-theme");
+    };
+
+    window.openSavedPosts = () => {
+      window.location.href = "saved-posts.html";
+    };
+  </script>
+</body>
 </html>
