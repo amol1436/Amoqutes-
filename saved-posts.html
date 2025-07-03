@@ -1,39 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Saved Posts</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
+      font-family: 'Segoe UI', sans-serif;
       padding: 20px;
     }
-    h2 { text-align: center; }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
     }
-    .card img, .card video {
+    .grid img, .grid video {
       width: 100%;
-      height: 150px;
+      height: 160px;
       object-fit: cover;
-      border-radius: 10px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
-  <h2>💾 Your Saved Posts</h2>
-  <div class="grid" id="savedGrid"></div>
+  <h2>📌 Your Saved Posts</h2>
+  <div class="grid" id="savedPostsGrid"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
     const firebaseConfig = {
@@ -48,31 +49,23 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
+    const auth = getAuth();
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return (window.location.href = "login.html");
+      if (!user) return window.location.href = "login.html";
 
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      const saved = userSnap.data().savedPosts || [];
+      const savedRef = collection(db, "users", user.uid, "savedPosts");
+      const snap = await getDocs(savedRef);
+      const grid = document.getElementById("savedPostsGrid");
 
-      const grid = document.getElementById("savedGrid");
-
-      for (const post of saved) {
-        const postRef = doc(db, post.type, post.id);
-        const postSnap = await getDoc(postRef);
-        if (!postSnap.exists()) continue;
-
-        const data = postSnap.data();
-        grid.innerHTML += `
-          <div class="card">
-            ${post.type === "reels"
-              ? `<video src="${data.videoUrl}" controls></video>`
-              : `<img src="${data.image}" />`
-            }
-          </div>`;
-      }
+      snap.forEach(doc => {
+        const data = doc.data();
+        if (data.image) {
+          grid.innerHTML += `<img src="${data.image}" alt="Saved Image" />`;
+        } else if (data.videoUrl) {
+          grid.innerHTML += `<video src="${data.videoUrl}" controls></video>`;
+        }
+      });
     });
   </script>
 </body>
