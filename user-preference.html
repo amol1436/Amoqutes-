@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Select Preferences</title>
+  <meta charset="UTF-8">
+  <title>User Preferences</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
       margin: 0;
@@ -12,122 +12,121 @@
       color: white;
     }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 30px 20px;
-    }
-
     h2 {
       text-align: center;
-      margin-bottom: 25px;
+      margin-top: 20px;
       font-size: 24px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 15px;
+      padding: 20px;
     }
 
     .card {
       background: rgba(255, 255, 255, 0.08);
-      border: 2px solid transparent;
+      padding: 10px;
       border-radius: 16px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: 0.3s ease;
       text-align: center;
-      position: relative;
+      transition: transform 0.2s, border 0.3s;
+      border: 2px solid transparent;
+      cursor: pointer;
     }
 
     .card img {
       width: 100%;
       height: 100px;
       object-fit: cover;
-    }
-
-    .card p {
-      margin: 10px 0;
-      font-weight: bold;
+      border-radius: 12px;
     }
 
     .card.selected {
-      border-color: #ff8c00;
-      box-shadow: 0 0 10px #ff8c00;
+      border: 2px solid #ff8c00;
+      box-shadow: 0 0 10px #ff0080;
+      transform: scale(1.02);
     }
 
-    .btn {
-      margin-top: 30px;
-      width: 100%;
+    .card p {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    .submit-btn {
+      display: block;
+      width: 80%;
+      margin: 30px auto;
       padding: 14px;
       font-size: 16px;
       font-weight: bold;
       border: none;
-      border-radius: 12px;
+      border-radius: 10px;
       background: linear-gradient(to right, #ff0080, #ff8c00);
       color: white;
       cursor: pointer;
-      transition: 0.3s;
+      box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+      transition: transform 0.2s;
     }
 
-    .btn:hover {
-      transform: scale(1.03);
+    .submit-btn:hover {
+      transform: scale(1.05);
       box-shadow: 0 0 15px #fff;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Select what you like</h2>
-    <div class="grid" id="preferenceGrid">
-      <!-- Example Cards -->
-      <div class="card" onclick="toggleSelect(this)">
-        <img src="https://i.postimg.cc/CzMJb5Gc/Arijit-Singh.jpg" />
-        <p>Romantic</p>
-      </div>
-      <div class="card" onclick="toggleSelect(this)">
-        <img src="https://i.postimg.cc/wjH3GcNY/sad.jpg" />
-        <p>Sad</p>
-      </div>
-      <div class="card" onclick="toggleSelect(this)">
-        <img src="https://i.postimg.cc/3R41rPmV/love.jpg" />
-        <p>Love</p>
-      </div>
-      <div class="card" onclick="toggleSelect(this)">
-        <img src="https://i.postimg.cc/9MbsfYky/motivation.jpg" />
-        <p>Motivation</p>
-      </div>
-    </div>
 
-    <button class="btn" onclick="submitPreferences()">Continue</button>
+  <h2>तुम्हाला काय आवडतं ते निवडा</h2>
+
+  <div class="grid" id="preferenceGrid">
+    <!-- Example card -->
+    <div class="card" onclick="toggleSelection(this)" data-name="Romantic">
+      <img src="https://via.placeholder.com/150x100.png?text=Romantic" alt="Romantic">
+      <p>Romantic</p>
+    </div>
+    <div class="card" onclick="toggleSelection(this)" data-name="Love Quotes">
+      <img src="https://via.placeholder.com/150x100.png?text=Love" alt="Love">
+      <p>Love Quotes</p>
+    </div>
+    <div class="card" onclick="toggleSelection(this)" data-name="Attitude">
+      <img src="https://via.placeholder.com/150x100.png?text=Attitude" alt="Attitude">
+      <p>Attitude</p>
+    </div>
+    <div class="card" onclick="toggleSelection(this)" data-name="Reels">
+      <img src="https://via.placeholder.com/150x100.png?text=Reels" alt="Reels">
+      <p>Reels</p>
+    </div>
+    <!-- Add more cards as needed -->
   </div>
 
-  <script>
-    const selectedPrefs = new Set();
+  <button class="submit-btn" onclick="submitPreferences()">Continue</button>
 
-    function toggleSelect(card) {
-      const text = card.querySelector("p").innerText;
-      if (selectedPrefs.has(text)) {
-        selectedPrefs.delete(text);
-        card.classList.remove("selected");
+  <script>
+    const selected = new Set();
+
+    function toggleSelection(card) {
+      const name = card.dataset.name;
+      card.classList.toggle('selected');
+      if (selected.has(name)) {
+        selected.delete(name);
       } else {
-        selectedPrefs.add(text);
-        card.classList.add("selected");
+        selected.add(name);
       }
     }
 
     function submitPreferences() {
-      if (selectedPrefs.size < 1) {
-        alert("Please select at least one preference.");
+      if (selected.size < 1) {
+        alert("कृपया किमान एक निवडा!");
         return;
       }
 
-      // Store in localStorage or Firebase
-      console.log([...selectedPrefs]);
-      // Redirect to home
+      // Save to Firestore or localStorage here
+      console.log("Selected Preferences:", Array.from(selected));
+      // redirect to home
       window.location.href = "home.html";
     }
   </script>
+
 </body>
 </html>
