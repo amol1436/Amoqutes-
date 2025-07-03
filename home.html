@@ -22,6 +22,7 @@
       align-items: center;
       border-top: 1px solid #444;
       backdrop-filter: blur(10px);
+      z-index: 99;
     }
     .bottom-nav button {
       background: none;
@@ -87,7 +88,7 @@
     <button onclick="window.location.href='profile.html'">👤</button>
   </div>
 
-  <!-- Firebase + Upload Script -->
+  <!-- Firebase Upload Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, updateDoc, increment, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
