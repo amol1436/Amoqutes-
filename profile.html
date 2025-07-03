@@ -2,107 +2,103 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Profile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Profile</title>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: #0f0c29;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      transition: background 0.3s, color 0.3s;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      background-color: #000000a0;
+    }
+
+    .menu-icon {
+      font-size: 24px;
+      cursor: pointer;
     }
 
     .profile {
-      text-align: center;
-      padding: 40px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
     }
 
     .profile img {
       width: 100px;
       height: 100px;
       border-radius: 50%;
+      border: 3px solid #ff8c00;
       object-fit: cover;
     }
 
     .profile h2 {
-      margin: 10px 0 5px;
+      margin-top: 12px;
     }
 
-    .menu {
-      position: absolute;
-      top: 15px;
-      right: 15px;
+    .profile p {
+      font-size: 16px;
+      opacity: 0.8;
     }
 
-    .menu button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 28px;
-      cursor: pointer;
-    }
-
-    .dropdown {
+    .menu-dropdown {
       display: none;
+      flex-direction: column;
       position: absolute;
-      right: 10px;
-      top: 50px;
-      background: #1f1f2e;
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 0 10px #000;
+      top: 60px;
+      right: 20px;
+      background-color: #111;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
 
-    .dropdown button {
-      display: block;
-      background: none;
+    .menu-dropdown button {
+      padding: 12px 20px;
       border: none;
+      background: none;
       color: white;
-      padding: 10px;
       text-align: left;
-      width: 100%;
+      font-size: 16px;
       cursor: pointer;
     }
 
-    .dropdown button:hover {
-      background: #333;
-    }
-
-    .dark-mode {
-      background: white;
-      color: black;
-    }
-
-    .dark-mode .dropdown {
-      background: #eee;
-      color: black;
-    }
-
-    .dark-mode .dropdown button:hover {
-      background: #ccc;
+    .menu-dropdown button:hover {
+      background-color: #222;
     }
   </style>
 </head>
 <body>
-  <div class="menu">
-    <button onclick="toggleDropdown()">☰</button>
-    <div class="dropdown" id="menuDropdown">
-      <button onclick="window.location.href='saved-post.html'">🔖 Saved Posts</button>
-      <button onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
-      <button onclick="logout()">🚪 Logout</button>
-    </div>
+
+  <div class="header">
+    <h2>Profile</h2>
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+  </div>
+
+  <div class="menu-dropdown" id="menuDropdown">
+    <button onclick="window.location.href='saved-post.html'">💾 Saved Posts</button>
+    <button onclick="toggleDarkMode()">🌓 Dark Mode</button>
+    <button onclick="logout()">🚪 Logout</button>
   </div>
 
   <div class="profile">
-    <img id="userPhoto" src="https://via.placeholder.com/100" alt="User">
-    <h2 id="userName">Username</h2>
+    <img id="userPhoto" src="" alt="User Photo">
+    <h2 id="userName">User Name</h2>
     <p id="userEmail">user@example.com</p>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -118,29 +114,27 @@
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        document.getElementById("userName").textContent = user.displayName || "User";
-        document.getElementById("userEmail").textContent = user.email;
-        if (user.photoURL) {
-          document.getElementById("userPhoto").src = user.photoURL;
-        }
+        document.getElementById("userName").innerText = user.displayName || "User";
+        document.getElementById("userEmail").innerText = user.email;
+        document.getElementById("userPhoto").src = user.photoURL || "https://via.placeholder.com/100";
       } else {
         window.location.href = "index.html";
       }
     });
 
-    window.logout = function() {
+    window.logout = () => {
       signOut(auth).then(() => {
         window.location.href = "index.html";
       });
     };
 
-    window.toggleDropdown = function() {
+    window.toggleMenu = () => {
       const menu = document.getElementById("menuDropdown");
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
+      menu.style.display = menu.style.display === "flex" ? "none" : "flex";
     };
 
-    window.toggleDarkMode = function() {
-      document.body.classList.toggle("dark-mode");
+    window.toggleDarkMode = () => {
+      alert("Dark mode coming soon!");
     };
   </script>
 </body>
