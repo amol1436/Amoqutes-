@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -12,124 +11,130 @@
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
       padding-bottom: 70px;
-    }
+    }.feed {
+  padding: 20px;
+}
 
-    .feed {
-      padding: 20px;
-    }
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #000;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  z-index: 999;
+}
 
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: #000;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 10px 0;
-      z-index: 999;
-    }
+.nav-item {
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
 
-    .nav-item {
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-    }
+.nav-item img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid white;
+}
 
-    .nav-item img {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 2px solid white;
-    }
+.nav-item svg {
+  stroke: white;
+  width: 26px;
+  height: 26px;
+}
 
-    .nav-item svg {
-      stroke: white;
-      width: 26px;
-      height: 26px;
-    }
+.nav-item.active svg {
+  stroke: #ff8c00;
+}
 
-    .nav-item.active svg {
-      stroke: #ff8c00;
-    }
+.card {
+  background: #ffffff10;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+}
 
-    .card {
-      background: #ffffff10;
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-    }
+.card img, .card video {
+  width: 100%;
+  border-radius: 10px;
+}
 
-    .card img, .card video {
-      width: 100%;
-      border-radius: 10px;
-    }
+.actions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
 
-    .actions {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 10px;
-    }
+.actions span {
+  cursor: pointer;
+  font-size: 18px;
+}
 
-    .actions span {
-      cursor: pointer;
-      font-size: 18px;
-    }
+.download-btn {
+  margin-top: 10px;
+  display: inline-block;
+  padding: 10px;
+  background: white;
+  color: #24243e;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: bold;
+}
 
-    .download-btn {
-      margin-top: 10px;
-      display: inline-block;
-      padding: 10px;
-      background: white;
-      color: #24243e;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-    }
+#uploadModal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000000d9;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-    #fileInput {
-      display: none;
-    }
+#uploadModal .modal-content {
+  background: #1c1c2b;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+}
+
+#uploadModal textarea {
+  width: 100%;
+  border-radius: 8px;
+  padding: 8px;
+}
+
   </style>
 </head>
-<body>
-
-  <!-- Feed Section -->
-  <div class="feed">
+<body>  <div class="feed">
     <h2 style="text-align:center;">Quotes & Reels Feed</h2>
     <div id="contentList"></div>
-  </div>
-
-  <!-- Hidden File Input -->
-  <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileUpload(event)" />
-
-  <!-- Bottom Navigation -->
-  <div class="bottom-nav">
-    <div class="nav-item active" onclick="window.location.href='home.html'">
-      <i data-feather="home"></i>
+  </div>  <!-- Upload Modal -->  <div id="uploadModal">
+    <div class="modal-content">
+      <h3 style="margin-top:0;">Upload with Caption</h3>
+      <input type="file" id="uploadFileInput" accept="image/*,video/*" style="margin-bottom:10px;" /><br/>
+      <textarea id="captionInput" rows="3" placeholder="Enter a caption..."></textarea>
+      <div style="margin-top:10px; text-align:right;">
+        <button onclick="uploadContent()" style="padding:10px 20px; background:#ff8c00; border:none; color:white; border-radius:8px; font-weight:bold;">Upload</button>
+        <button onclick="closeModal()" style="padding:10px 20px; background:#444; border:none; color:white; border-radius:8px;">Cancel</button>
+      </div>
     </div>
-    <div class="nav-item" onclick="window.location.href='search.html'">
-      <i data-feather="search"></i>
-    </div>
-    <div class="nav-item" onclick="document.getElementById('fileInput').click()">
-      <i data-feather="plus-square"></i>
-    </div>
-    <div class="nav-item" onclick="window.location.href='reels.html'">
-      <i data-feather="film"></i>
-    </div>
-    <div class="nav-item" onclick="window.location.href='profile.html'">
-      <img src="https://i.postimg.cc/d0D2CJFj/profile-pic.jpg" alt="User" />
-    </div>
-  </div>
-
-  <script>
+  </div>  <!-- Bottom Navigation -->  <div class="bottom-nav">
+    <div class="nav-item active" onclick="window.location.href='home.html'"><i data-feather="home"></i></div>
+    <div class="nav-item" onclick="window.location.href='search.html'"><i data-feather="search"></i></div>
+    <div class="nav-item" onclick="openUploadModal()"><i data-feather="plus-square"></i></div>
+    <div class="nav-item" onclick="window.location.href='reels.html'"><i data-feather="film"></i></div>
+    <div class="nav-item" onclick="window.location.href='profile.html'"><img src="https://i.postimg.cc/d0D2CJFj/profile-pic.jpg" alt="User" /></div>
+  </div>  <script>
     feather.replace();
-  </script>
-
-  <!-- Firebase Scripts -->
-  <script type="module">
+  </script>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, updateDoc, increment, doc, setDoc, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, updateDoc, increment, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
@@ -148,9 +153,21 @@
     const storage = getStorage(app);
     const auth = getAuth(app);
 
-    async function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
+    window.openUploadModal = () => {
+      document.getElementById("uploadModal").style.display = "flex";
+      document.getElementById("uploadFileInput").value = "";
+      document.getElementById("captionInput").value = "";
+    };
+
+    window.closeModal = () => {
+      document.getElementById("uploadModal").style.display = "none";
+    };
+
+    window.uploadContent = async () => {
+      const fileInput = document.getElementById('uploadFileInput');
+      const caption = document.getElementById('captionInput').value.trim();
+      const file = fileInput.files[0];
+      if (!file) return alert("Please select a file.");
       const user = auth.currentUser;
       if (!user) return alert("Please login first");
 
@@ -161,6 +178,7 @@
 
       const data = {
         uid: user.uid,
+        caption: caption || "",
         createdAt: new Date(),
         likes: 0,
         comments: []
@@ -169,26 +187,25 @@
       else data.image = url;
 
       await addDoc(collection(db, isVideo ? "reels" : "quotes"), data);
+      closeModal();
       loadFeed();
-    }
+    };
 
-    async function likePost(id, type) {
+    window.likePost = async (id, type) => {
       const ref = doc(db, type, id);
       await updateDoc(ref, { likes: increment(1) });
       loadFeed();
-    }
+    };
 
-    async function commentPost(id, type) {
+    window.commentPost = async (id, type) => {
       const comment = prompt("Enter your comment:");
       if (!comment) return;
       const ref = doc(db, type, id);
-      await updateDoc(ref, {
-        comments: arrayUnion(comment)
-      });
+      await updateDoc(ref, { comments: arrayUnion(comment) });
       loadFeed();
-    }
+    };
 
-    async function sharePost(id) {
+    window.sharePost = (id) => {
       const url = window.location.href + "?post=" + id;
       if (navigator.share) {
         navigator.share({ title: "Check this out", url });
@@ -196,7 +213,7 @@
         navigator.clipboard.writeText(url);
         alert("Link copied!");
       }
-    }
+    };
 
     async function loadFeed() {
       const contentList = document.getElementById("contentList");
@@ -208,14 +225,14 @@
         contentList.innerHTML += `
           <div class="card">
             ${q.image ? `<img src="${q.image}" />` : ''}
+            ${q.caption ? `<p style="margin-top:10px;">${q.caption}</p>` : ''}
             <div class="actions">
               <span onclick="likePost('${docSnap.id}', 'quotes')">❤️ ${q.likes || 0}</span>
               <span onclick="commentPost('${docSnap.id}', 'quotes')">💬 ${q.comments?.length || 0}</span>
               <span onclick="sharePost('${docSnap.id}')">🔗</span>
             </div>
             <a href="${q.image}" class="download-btn" download>Download</a>
-          </div>
-        `;
+          </div>`;
       });
 
       const reelSnap = await getDocs(query(collection(db, "reels"), orderBy("createdAt", "desc")));
@@ -224,23 +241,17 @@
         contentList.innerHTML += `
           <div class="card">
             <video src="${r.videoUrl}" controls></video>
+            ${r.caption ? `<p style="margin-top:10px;">${r.caption}</p>` : ''}
             <div class="actions">
               <span onclick="likePost('${docSnap.id}', 'reels')">❤️ ${r.likes || 0}</span>
               <span onclick="commentPost('${docSnap.id}', 'reels')">💬 ${r.comments?.length || 0}</span>
               <span onclick="sharePost('${docSnap.id}')">🔗</span>
             </div>
             <a href="${r.videoUrl}" class="download-btn" download>Download</a>
-          </div>
-        `;
+          </div>`;
       });
     }
 
-    window.likePost = likePost;
-    window.commentPost = commentPost;
-    window.sharePost = sharePost;
-
     loadFeed();
-  </script>
-
-</body>
+  </script></body>
 </html>
