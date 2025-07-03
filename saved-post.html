@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Saved Posts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
+      padding: 20px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #ffffff10;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+    }
+
+    .card img, .card video {
+      max-width: 100%;
+      border-radius: 10px;
+    }
+
+    .card p {
+      margin-top: 10px;
+      font-size: 16px;
+    }
+
+    .download-btn {
+      display: inline-block;
+      padding: 8px 12px;
+      background: white;
+      color: #24243e;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Saved Posts</h2>
+  <div id="savedList"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.appspot.com",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const savedList = document.getElementById("savedList");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        alert("Please login to view saved posts");
+        return;
+      }
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists() || !userSnap.data().saved) {
+        savedList.innerHTML = "<p style='text-align:center;'>No saved posts found.</p>";
+        return;
+      }
+
+      const savedIds = userSnap.data().saved;
+
+      for (let id of savedIds) {
+        const quoteRef = doc(db, "quotes", id);
+        const reelRef = doc(db, "reels", id);
+
+        const [quoteSnap, reelSnap] = await Promise.all([getDoc(quoteRef), getDoc(reelRef)]);
+
+        if (quoteSnap.exists()) {
+          const data = quoteSnap.data();
+          savedList.innerHTML += `
+            <div class="card">
+              <img src="${data.image}" />
+              <a href="${data.image}" download class="download-btn">Download</a>
+            </div>
+          `;
+        } else if (reelSnap.exists()) {
+          const data = reelSnap.data();
+          savedList.innerHTML += `
+            <div class="card">
+              <video src="${data.videoUrl}" controls></video>
+              <a href="${data.videoUrl}" download class="download-btn">Download</a>
+            </div>
+          `;
+        }
+      }
+    });
+  </script>
+</body>
+</html>
