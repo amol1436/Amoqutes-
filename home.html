@@ -13,11 +13,9 @@
       color: white;
       padding-bottom: 70px;
     }
-
     .feed {
       padding: 20px;
     }
-
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -29,59 +27,44 @@
       padding: 10px 0;
       z-index: 999;
     }
-
     .nav-item {
       color: white;
       font-size: 24px;
       cursor: pointer;
     }
-
     .nav-item img {
       width: 28px;
       height: 28px;
       border-radius: 50%;
       border: 2px solid white;
     }
-
     .nav-item svg {
       stroke: white;
       width: 26px;
       height: 26px;
     }
-
     .nav-item.active svg {
       stroke: #ff8c00;
     }
-
     .card {
       background: #ffffff10;
       padding: 15px;
       margin-bottom: 20px;
       border-radius: 12px;
     }
-
     .card img, .card video {
       width: 100%;
       border-radius: 10px;
     }
-
     .actions {
       display: flex;
       justify-content: space-around;
       margin-top: 10px;
     }
-
     .actions span {
       cursor: pointer;
       font-size: 18px;
     }
-
-    .caption {
-      margin-top: 10px;
-      font-size: 15px;
-      opacity: 0.9;
-    }
-
     .download-btn {
       margin-top: 10px;
       display: inline-block;
@@ -92,7 +75,6 @@
       text-decoration: none;
       font-weight: bold;
     }
-
     #fileInput {
       display: none;
     }
@@ -100,6 +82,7 @@
 </head>
 <body>
 
+  <!-- Feed Section -->
   <div class="feed">
     <h2 style="text-align:center;">Quotes & Reels Feed</h2>
     <div id="contentList"></div>
@@ -131,10 +114,13 @@
     feather.replace();
   </script>
 
-  <!-- Firebase -->
+  <!-- Firebase Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import {
+      getFirestore, collection, addDoc, getDocs, query, orderBy,
+      updateDoc, increment, doc, setDoc, getDoc, arrayUnion
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
@@ -153,49 +139,69 @@
     const storage = getStorage(app);
     const auth = getAuth(app);
 
-    let currentUser = null;
-
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        alert("Please login first");
-        window.location.href = "login.html";
-      } else {
-        currentUser = user;
-        loadFeed();
-      }
-    });
-
-    window.handleFileUpload = async function(event) {
+    async function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-
-      if (!currentUser) {
-        alert("Please wait, authentication in progress.");
-        return;
-      }
+      const user = auth.currentUser;
+      if (!user) return alert("Please login first");
 
       const isVideo = file.type.startsWith("video");
-      const caption = prompt("Enter a caption or hashtags:"); // Hashtag or caption
-
       const storageRef = ref(storage, `${isVideo ? 'reels' : 'quote_images'}/${Date.now()}_${file.name}`);
       const snap = await uploadBytes(storageRef, file);
       const url = await getDownloadURL(snap.ref);
 
-      const postData = {
-        uid: currentUser.uid,
+      const data = {
+        uid: user.uid,
         createdAt: new Date(),
         likes: 0,
-        comments: [],
-        caption: caption || "",
+        comments: []
       };
+      if (isVideo) data.videoUrl = url;
+      else data.image = url;
 
-      if (isVideo) postData.videoUrl = url;
-      else postData.image = url;
-
-      await addDoc(collection(db, isVideo ? "reels" : "quotes"), postData);
-      alert("Post uploaded!");
+      await addDoc(collection(db, isVideo ? "reels" : "quotes"), data);
       loadFeed();
-    };
+    }
+
+    async function likePost(id, type) {
+      const ref = doc(db, type, id);
+      await updateDoc(ref, { likes: increment(1) });
+      loadFeed();
+    }
+
+    async function commentPost(id, type) {
+      const comment = prompt("Enter your comment:");
+      if (!comment) return;
+      const ref = doc(db, type, id);
+      await updateDoc(ref, {
+        comments: arrayUnion(comment)
+      });
+      loadFeed();
+    }
+
+    async function sharePost(id) {
+      const url = window.location.href + "?post=" + id;
+      if (navigator.share) {
+        navigator.share({ title: "Check this out", url });
+      } else {
+        navigator.clipboard.writeText(url);
+        alert("Link copied!");
+      }
+    }
+
+    async function savePost(id, type) {
+      const user = auth.currentUser;
+      if (!user) return alert("Please login first");
+
+      const postRef = doc(db, type, id);
+      const postSnap = await getDoc(postRef);
+      if (!postSnap.exists()) return;
+
+      const data = postSnap.data();
+      const saveRef = doc(db, "users", user.uid, "savedPosts", id);
+      await setDoc(saveRef, data);
+      alert("Post saved!");
+    }
 
     async function loadFeed() {
       const contentList = document.getElementById("contentList");
@@ -207,11 +213,11 @@
         contentList.innerHTML += `
           <div class="card">
             ${q.image ? `<img src="${q.image}" />` : ''}
-            ${q.caption ? `<div class="caption">${q.caption}</div>` : ''}
             <div class="actions">
-              <span>❤️ ${q.likes || 0}</span>
-              <span>💬 ${q.comments?.length || 0}</span>
-              <span onclick="navigator.clipboard.writeText('${q.image}')">🔗</span>
+              <span onclick="likePost('${docSnap.id}', 'quotes')">❤️ ${q.likes || 0}</span>
+              <span onclick="commentPost('${docSnap.id}', 'quotes')">💬 ${q.comments?.length || 0}</span>
+              <span onclick="sharePost('${docSnap.id}')">🔗</span>
+              <span onclick="savePost('${docSnap.id}', 'quotes')">💾</span>
             </div>
             <a href="${q.image}" class="download-btn" download>Download</a>
           </div>
@@ -224,17 +230,25 @@
         contentList.innerHTML += `
           <div class="card">
             <video src="${r.videoUrl}" controls></video>
-            ${r.caption ? `<div class="caption">${r.caption}</div>` : ''}
             <div class="actions">
-              <span>❤️ ${r.likes || 0}</span>
-              <span>💬 ${r.comments?.length || 0}</span>
-              <span onclick="navigator.clipboard.writeText('${r.videoUrl}')">🔗</span>
+              <span onclick="likePost('${docSnap.id}', 'reels')">❤️ ${r.likes || 0}</span>
+              <span onclick="commentPost('${docSnap.id}', 'reels')">💬 ${r.comments?.length || 0}</span>
+              <span onclick="sharePost('${docSnap.id}')">🔗</span>
+              <span onclick="savePost('${docSnap.id}', 'reels')">💾</span>
             </div>
             <a href="${r.videoUrl}" class="download-btn" download>Download</a>
           </div>
         `;
       });
     }
+
+    window.likePost = likePost;
+    window.commentPost = commentPost;
+    window.sharePost = sharePost;
+    window.savePost = savePost;
+
+    loadFeed();
   </script>
+
 </body>
 </html>
