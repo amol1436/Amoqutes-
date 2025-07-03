@@ -2,115 +2,132 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>User Preferences - Amoqutes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Select Preferences</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      padding: 20px;
-      text-align: center;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 30px 20px;
     }
 
     h2 {
+      text-align: center;
+      margin-bottom: 25px;
       font-size: 24px;
-      margin: 20px 0;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 20px;
     }
 
     .card {
-      background: rgba(255, 255, 255, 0.07);
-      padding: 20px;
-      border-radius: 15px;
-      cursor: pointer;
-      transition: 0.3s;
+      background: rgba(255, 255, 255, 0.08);
       border: 2px solid transparent;
-    }
-
-    .card:hover {
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    .card.selected {
-      border-color: #00e676;
-      box-shadow: 0 0 10px #00e676;
-    }
-
-    .continue-btn {
-      margin-top: 30px;
-      padding: 15px 30px;
-      border: none;
-      background: #00c853;
-      color: white;
-      font-size: 16px;
-      border-radius: 30px;
+      border-radius: 16px;
+      overflow: hidden;
       cursor: pointer;
-      transition: 0.3s;
+      transition: 0.3s ease;
+      text-align: center;
+      position: relative;
+    }
+
+    .card img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+    }
+
+    .card p {
+      margin: 10px 0;
       font-weight: bold;
     }
 
-    .continue-btn:disabled {
-      background: gray;
-      cursor: not-allowed;
+    .card.selected {
+      border-color: #ff8c00;
+      box-shadow: 0 0 10px #ff8c00;
+    }
+
+    .btn {
+      margin-top: 30px;
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(to right, #ff0080, #ff8c00);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 15px #fff;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Select what you like</h2>
+    <div class="grid" id="preferenceGrid">
+      <!-- Example Cards -->
+      <div class="card" onclick="toggleSelect(this)">
+        <img src="https://i.postimg.cc/CzMJb5Gc/Arijit-Singh.jpg" />
+        <p>Romantic</p>
+      </div>
+      <div class="card" onclick="toggleSelect(this)">
+        <img src="https://i.postimg.cc/wjH3GcNY/sad.jpg" />
+        <p>Sad</p>
+      </div>
+      <div class="card" onclick="toggleSelect(this)">
+        <img src="https://i.postimg.cc/3R41rPmV/love.jpg" />
+        <p>Love</p>
+      </div>
+      <div class="card" onclick="toggleSelect(this)">
+        <img src="https://i.postimg.cc/9MbsfYky/motivation.jpg" />
+        <p>Motivation</p>
+      </div>
+    </div>
 
-  <h2>Tell us what you like 💖</h2>
-
-  <div class="grid" id="categoryGrid">
-    <div class="card">Love 💕</div>
-    <div class="card">Sad 😢</div>
-    <div class="card">Romantic ❤️</div>
-    <div class="card">Attitude 😎</div>
-    <div class="card">Motivational 🔥</div>
-    <div class="card">Reels 🎥</div>
-    <div class="card">Status 📱</div>
-    <div class="card">Shayari ✍️</div>
-    <div class="card">Breakup 💔</div>
-    <div class="card">Friendship 👯</div>
+    <button class="btn" onclick="submitPreferences()">Continue</button>
   </div>
 
-  <button class="continue-btn" id="continueBtn" disabled>Continue</button>
-
   <script>
-    const cards = document.querySelectorAll('.card');
-    const continueBtn = document.getElementById('continueBtn');
-    const selected = new Set();
+    const selectedPrefs = new Set();
 
-    cards.forEach(card => {
-      card.addEventListener('click', () => {
-        const value = card.textContent.trim();
-        if (card.classList.contains('selected')) {
-          selected.delete(value);
-          card.classList.remove('selected');
-        } else {
-          selected.add(value);
-          card.classList.add('selected');
-        }
+    function toggleSelect(card) {
+      const text = card.querySelector("p").innerText;
+      if (selectedPrefs.has(text)) {
+        selectedPrefs.delete(text);
+        card.classList.remove("selected");
+      } else {
+        selectedPrefs.add(text);
+        card.classList.add("selected");
+      }
+    }
 
-        continueBtn.disabled = selected.size < 3;
-      });
-    });
+    function submitPreferences() {
+      if (selectedPrefs.size < 1) {
+        alert("Please select at least one preference.");
+        return;
+      }
 
-    continueBtn.addEventListener('click', () => {
-      const preferences = Array.from(selected);
-      console.log('Selected:', preferences);
-      // TODO: Firebase save here
-      // Then redirect to quotes.html
-      window.location.href = "quotes.html";
-    });
+      // Store in localStorage or Firebase
+      console.log([...selectedPrefs]);
+      // Redirect to home
+      window.location.href = "home.html";
+    }
   </script>
-
 </body>
 </html>
