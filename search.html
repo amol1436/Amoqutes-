@@ -2,102 +2,138 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Search - Amoqutes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Search | Amoqutes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://unpkg.com/feather-icons"></script>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      height: 100%;
-      overflow-x: hidden;
+      padding-bottom: 70px;
     }
 
     .search-container {
       padding: 20px;
-      box-sizing: border-box;
     }
 
-    .search-input {
+    .search-box {
       width: 100%;
       padding: 12px 15px;
-      border-radius: 10px;
       border: none;
+      border-radius: 10px;
       font-size: 16px;
-      outline: none;
-      box-sizing: border-box;
     }
 
     .bottom-nav {
       position: fixed;
       bottom: 0;
-      left: 0;
-      right: 0;
+      width: 100%;
       background: #000;
       display: flex;
       justify-content: space-around;
       align-items: center;
       padding: 10px 0;
-      border-top: 1px solid #333;
-      z-index: 1000;
+      z-index: 999;
+    }
+
+    .nav-item {
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .nav-item img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid white;
     }
 
     .nav-item svg {
+      stroke: white;
       width: 26px;
       height: 26px;
-      stroke: white;
-      transition: stroke 0.2s ease-in-out;
     }
 
     .nav-item.active svg {
-      stroke: orange;
+      stroke: #ff8c00;
     }
 
-    .content {
-      padding-bottom: 80px; /* to prevent bottom nav overlapping content */
+    #fileInput {
+      display: none;
     }
   </style>
 </head>
 <body>
 
   <div class="search-container">
-    <input type="text" class="search-input" placeholder="Search hashtags or captions..." />
+    <input type="text" id="searchInput" class="search-box" placeholder="Search hashtags or captions..." />
   </div>
 
-  <div class="content" id="results">
-    <!-- Results will come here -->
-  </div>
-
-  <!-- Bottom Navigation -->
+  <!-- Bottom Navbar (Same as home.html) -->
   <div class="bottom-nav">
     <div class="nav-item" onclick="window.location.href='home.html'">
       <i data-feather="home"></i>
     </div>
-    <div class="nav-item active">
+    <div class="nav-item active" onclick="window.location.href='search.html'">
       <i data-feather="search"></i>
     </div>
+    <div class="nav-item" onclick="document.getElementById('fileInput').click()">
+      <i data-feather="plus-square"></i>
+    </div>
+    <div class="nav-item" onclick="window.location.href='reels.html'">
+      <i data-feather="film"></i>
+    </div>
     <div class="nav-item" onclick="window.location.href='profile.html'">
-      <i data-feather="user"></i>
+      <img src="https://i.postimg.cc/d0D2CJFj/profile-pic.jpg" alt="User" />
     </div>
   </div>
 
+  <!-- Hidden File Input -->
+  <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileUpload(event)" />
+
+  <!-- Feather Icons -->
   <script>
     feather.replace();
-
-    // Prevent UI shift on mobile keyboard
-    const input = document.querySelector('.search-input');
-    input.addEventListener('focus', () => {
-      document.body.style.height = '100vh';
-      document.body.style.overflow = 'hidden';
-    });
-    input.addEventListener('blur', () => {
-      document.body.style.height = '';
-      document.body.style.overflow = '';
-    });
   </script>
 
+  <!-- Optional: Firebase + File Upload (if needed) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
+      authDomain: "amoqutes.firebaseapp.com",
+      projectId: "amoqutes",
+      storageBucket: "amoqutes.appspot.com",
+      messagingSenderId: "817694015009",
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+    const auth = getAuth();
+
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const user = auth.currentUser;
+      if (!user) return alert("Please login first");
+
+      const isVideo = file.type.startsWith("video");
+      const path = `${isVideo ? 'reels' : 'quote_images'}/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      alert("File uploaded successfully!");
+    }
+
+    window.handleFileUpload = handleFileUpload;
+  </script>
 </body>
 </html>
