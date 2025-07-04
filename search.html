@@ -2,50 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Search | Amoqutes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://unpkg.com/feather-icons"></script>
   <style>
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      padding: 0;
+      padding-bottom: 70px;
     }
 
     .search-container {
-      height: calc(100vh - 70px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       padding: 20px;
     }
 
     .search-box {
       width: 100%;
-      max-width: 90%;
       padding: 12px 15px;
       border: none;
       border-radius: 10px;
       font-size: 16px;
-      outline: none;
-    }
-
-    .results {
-      margin-top: 20px;
-      width: 100%;
-      max-width: 600px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 10px;
-    }
-
-    .results img, .results video {
-      width: 100%;
-      height: 160px;
-      object-fit: cover;
-      border-radius: 8px;
     }
 
     .bottom-nav {
@@ -66,6 +44,13 @@
       cursor: pointer;
     }
 
+    .nav-item img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
     .nav-item svg {
       stroke: white;
       width: 26px;
@@ -75,38 +60,50 @@
     .nav-item.active svg {
       stroke: #ff8c00;
     }
+
+    #fileInput {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
   <div class="search-container">
-    <input
-      type="text"
-      id="searchInput"
-      class="search-box"
-      placeholder="Search hashtags or captions..."
-      oninput="searchPosts()"
-    />
-    <div class="results" id="results"></div>
+    <input type="text" id="searchInput" class="search-box" placeholder="Search hashtags or captions..." />
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- Bottom Navbar (Same as home.html) -->
   <div class="bottom-nav">
     <div class="nav-item" onclick="window.location.href='home.html'">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m-4-4h8" /></svg>
+      <i data-feather="home"></i>
     </div>
     <div class="nav-item active" onclick="window.location.href='search.html'">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <i data-feather="search"></i>
+    </div>
+    <div class="nav-item" onclick="document.getElementById('fileInput').click()">
+      <i data-feather="plus-square"></i>
+    </div>
+    <div class="nav-item" onclick="window.location.href='reels.html'">
+      <i data-feather="film"></i>
     </div>
     <div class="nav-item" onclick="window.location.href='profile.html'">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5.121 17.804A7.5 7.5 0 0112 15a7.5 7.5 0 016.879 2.804M12 12a4.5 4.5 0 100-9 4.5 4.5 0 000 9z" /></svg>
+      <img src="https://i.postimg.cc/d0D2CJFj/profile-pic.jpg" alt="User" />
     </div>
   </div>
 
-  <!-- Firebase Script -->
+  <!-- Hidden File Input -->
+  <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleFileUpload(event)" />
+
+  <!-- Feather Icons -->
+  <script>
+    feather.replace();
+  </script>
+
+  <!-- Optional: Firebase + File Upload (if needed) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -114,60 +111,29 @@
       projectId: "amoqutes",
       storageBucket: "amoqutes.appspot.com",
       messagingSenderId: "817694015009",
-      appId: "1:817694015009:web:488c55ad3b834036882d60"
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const auth = getAuth();
 
-    let allPosts = [];
+    async function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const user = auth.currentUser;
+      if (!user) return alert("Please login first");
 
-    async function fetchAllPosts() {
-      const quoteSnap = await getDocs(collection(db, "quotes"));
-      const reelSnap = await getDocs(collection(db, "reels"));
-
-      allPosts = [];
-
-      quoteSnap.forEach(doc => {
-        const d = doc.data();
-        allPosts.push({
-          ...d,
-          type: "image"
-        });
-      });
-
-      reelSnap.forEach(doc => {
-        const d = doc.data();
-        allPosts.push({
-          ...d,
-          type: "video"
-        });
-      });
+      const isVideo = file.type.startsWith("video");
+      const path = `${isVideo ? 'reels' : 'quote_images'}/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, path);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+      alert("File uploaded successfully!");
     }
 
-    async function searchPosts() {
-      const input = document.getElementById("searchInput").value.toLowerCase();
-      const resultDiv = document.getElementById("results");
-      resultDiv.innerHTML = "";
-
-      if (input.trim() === "") return;
-
-      const matched = allPosts.filter(post =>
-        (post.caption && post.caption.toLowerCase().includes(input)) ||
-        (post.hashtags && post.hashtags.toLowerCase().includes(input))
-      );
-
-      matched.forEach(post => {
-        if (post.type === "image") {
-          resultDiv.innerHTML += `<img src="${post.image}" alt="img">`;
-        } else if (post.type === "video") {
-          resultDiv.innerHTML += `<video src="${post.videoUrl}" controls></video>`;
-        }
-      });
-    }
-
-    fetchAllPosts(); // load all posts initially
+    window.handleFileUpload = handleFileUpload;
   </script>
-
 </body>
 </html>
