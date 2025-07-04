@@ -3,19 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <title>Search - Amoqutes</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <script src="https://unpkg.com/feather-icons"></script>
   <style>
-    body {
+    html, body {
       margin: 0;
+      padding: 0;
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
       color: white;
-      padding-bottom: 60px;
+      height: 100%;
+      overflow-x: hidden;
     }
 
     .search-container {
       padding: 20px;
+      box-sizing: border-box;
     }
 
     .search-input {
@@ -25,22 +28,21 @@
       border: none;
       font-size: 16px;
       outline: none;
+      box-sizing: border-box;
     }
 
     .bottom-nav {
       position: fixed;
       bottom: 0;
-      width: 100%;
+      left: 0;
+      right: 0;
       background: #000;
       display: flex;
       justify-content: space-around;
       align-items: center;
       padding: 10px 0;
       border-top: 1px solid #333;
-    }
-
-    .nav-item {
-      text-align: center;
+      z-index: 1000;
     }
 
     .nav-item svg {
@@ -53,12 +55,20 @@
     .nav-item.active svg {
       stroke: orange;
     }
+
+    .content {
+      padding-bottom: 80px; /* to prevent bottom nav overlapping content */
+    }
   </style>
 </head>
 <body>
 
   <div class="search-container">
     <input type="text" class="search-input" placeholder="Search hashtags or captions..." />
+  </div>
+
+  <div class="content" id="results">
+    <!-- Results will come here -->
   </div>
 
   <!-- Bottom Navigation -->
@@ -76,6 +86,17 @@
 
   <script>
     feather.replace();
+
+    // Prevent UI shift on mobile keyboard
+    const input = document.querySelector('.search-input');
+    input.addEventListener('focus', () => {
+      document.body.style.height = '100vh';
+      document.body.style.overflow = 'hidden';
+    });
+    input.addEventListener('blur', () => {
+      document.body.style.height = '';
+      document.body.style.overflow = '';
+    });
   </script>
 
 </body>
