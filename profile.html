@@ -2,150 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AmVibe Profile</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile - Amoqutes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      background: white;
-      font-family: sans-serif;
       margin: 0;
-      padding: 20px;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+      color: white;
     }
 
-    .top-bar {
+    .navbar {
+      height: 60px;
+      background: #000;
+      color: white;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-    }
-
-    .username {
+      justify-content: space-between;
+      padding: 0 16px;
+      font-size: 20px;
       font-weight: bold;
-      font-size: 18px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      position: sticky;
+      top: 0;
+      z-index: 999;
     }
 
-    .settings-icon {
+    .menu-icon {
       font-size: 24px;
       cursor: pointer;
     }
 
-    .profile-section {
-      text-align: center;
-      margin-top: 20px;
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 16px;
+      background: #1a1a2e;
+      border: 1px solid #444;
+      border-radius: 10px;
+      z-index: 10;
+      min-width: 160px;
     }
 
-    .profile-pic-container {
+    .dropdown-menu button {
+      background: none;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      text-align: left;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .dropdown-menu button:hover {
+      background-color: #333;
+    }
+
+    .profile-header {
+      text-align: center;
+      padding: 30px 20px 10px;
       position: relative;
-      display: inline-block;
-      padding: 4px;
-      border-radius: 50%;
-      background: conic-gradient(#f94c84, #f9c449, #f94c84);
     }
 
     .profile-pic {
-      width: 100px;
-      height: 100px;
+      width: 110px;
+      height: 110px;
       border-radius: 50%;
+      border: 3px solid #ff4da6; /* story ring effect */
       object-fit: cover;
-      border: 3px solid white;
     }
 
     .online-dot {
       position: absolute;
-      bottom: 6px;
-      right: 6px;
-      width: 16px;
-      height: 16px;
-      background-color: #ff2e96;
+      top: 32px;
+      right: 36%;
+      width: 14px;
+      height: 14px;
+      background: #ff69b4;
       border: 2px solid white;
       border-radius: 50%;
-      display: none;
     }
 
-    .user-status {
+    .username {
+      font-size: 22px;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+
+    .bio {
       font-size: 14px;
-      color: #666;
-      margin-top: 4px;
+      opacity: 0.9;
     }
 
-    .counts {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin: 15px 0;
-    }
-
-    .counts div {
-      font-size: 16px;
-    }
-
-    .bio-container {
-      text-align: center;
-      margin-top: 10px;
-    }
-
-    #bio {
-      border: none;
-      text-align: center;
-      width: 90%;
+    .post-count {
       font-size: 14px;
-      background: none;
-      resize: none;
-      outline: none;
-      color: #333;
+      opacity: 0.6;
+      margin-top: 5px;
     }
 
-    .edit-buttons {
-      text-align: center;
-      margin-top: 10px;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 12px;
     }
 
-    .edit-buttons button {
-      padding: 6px 14px;
-      border-radius: 6px;
-      border: none;
-      background: #efefef;
-      cursor: pointer;
-      margin: 5px;
+    .grid-item img, .grid-item video {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    body.dark-theme {
+      background: #000;
+      color: #fff;
     }
   </style>
 </head>
 <body>
+  <div class="navbar">
+    Profile
+    <div class="menu-icon" onclick="toggleMenu()">☰</div>
+    <div class="dropdown-menu" id="dropdownMenu">
+      <button onclick="openSavedPosts()">💾 Saved Posts</button>
+      <button onclick="toggleDarkMode()">🌙 Dark Mode</button>
+      <button onclick="logout()">🚪 Logout</button>
+    </div>
+  </div>
 
-  <div class="top-bar">
+  <div class="profile-header">
+    <div class="online-dot" id="onlineDot" style="display: none;"></div>
+    <img src="https://via.placeholder.com/100" alt="Profile Pic" id="profilePic" class="profile-pic" />
     <div class="username" id="username">Loading...</div>
-    <div class="settings-icon">☰</div>
+    <div class="bio" id="userBio">Hey there! 👋</div>
+    <div class="post-count" id="postCount">Posts: 0</div>
   </div>
 
-  <div class="profile-section">
-    <div class="profile-pic-container">
-      <img src="https://i.postimg.cc/d0D2CJFj/profile-pic.jpg" id="profilePic" class="profile-pic" />
-      <div class="online-dot" id="onlineDot"></div>
-    </div>
-
-    <div class="user-status" id="userStatus">Checking...</div>
-
-    <div class="counts">
-      <div><strong>34</strong><br>Posts</div>
-      <div><strong>822</strong><br>Followers</div>
-      <div><strong>387</strong><br>Following</div>
-    </div>
-
-    <div class="bio-container">
-      <textarea id="bio" rows="3" placeholder="Write your bio..."></textarea>
-    </div>
-
-    <div class="edit-buttons">
-      <button onclick="saveBio()">Save Bio</button>
-    </div>
-  </div>
+  <div class="grid" id="userPosts"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import { getDatabase, ref, set, onDisconnect, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAeWvknhtEkMGyJnEYvmJ1oTzWfgpIdaDg",
@@ -153,63 +165,76 @@
       projectId: "amoqutes",
       storageBucket: "amoqutes.appspot.com",
       messagingSenderId: "817694015009",
-      appId: "1:817694015009:web:488c55ad3b834036882d60"
+      appId: "1:817694015009:web:488c55ad3b834036882d60",
+      measurementId: "G-R0EZ6JZWVM"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const db = getDatabase();
-    const fs = getFirestore();
-
-    const usernameEl = document.getElementById("username");
-    const onlineDot = document.getElementById("onlineDot");
-    const userStatus = document.getElementById("userStatus");
-    const bioEl = document.getElementById("bio");
-
-    let currentUID = null;
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return window.location.href = "login.html";
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
 
-      currentUID = user.uid;
-      usernameEl.innerText = user.displayName || "User";
+      document.getElementById("username").innerText = user.displayName || user.email;
+      if (user.photoURL) {
+        document.getElementById("profilePic").src = user.photoURL;
+      }
 
-      // Realtime Online Status
-      const userStatusRef = ref(db, "status/" + currentUID);
-      set(userStatusRef, { state: "online", last_changed: serverTimestamp() });
-      onDisconnect(userStatusRef).set({ state: "offline", last_changed: serverTimestamp() });
-
-      onValue(userStatusRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-        const isOnline = data.state === "online";
-        if (isOnline) {
-          onlineDot.style.display = "block";
-          userStatus.textContent = "Active now";
-        } else {
-          onlineDot.style.display = "none";
-          const lastSeen = new Date(data.last_changed).toLocaleString();
-          userStatus.textContent = "Last seen: " + lastSeen;
+      // Online Status (pink dot)
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        const lastSeen = data.lastSeen?.toDate?.() || new Date(0);
+        if ((new Date() - lastSeen) < 60000) {
+          document.getElementById("onlineDot").style.display = "block";
         }
+        if (data.bio) {
+          document.getElementById("userBio").innerText = data.bio;
+        }
+      }
+
+      const postContainer = document.getElementById("userPosts");
+      let count = 0;
+
+      const quoteSnap = await getDocs(query(collection(db, "quotes"), where("uid", "==", user.uid)));
+      quoteSnap.forEach(doc => {
+        const data = doc.data();
+        postContainer.innerHTML += `<div class="grid-item"><img src="${data.image}" /></div>`;
+        count++;
       });
 
-      // Load existing bio from Firestore
-      const bioRef = doc(fs, "users", currentUID);
-      const docSnap = await getDoc(bioRef);
-      if (docSnap.exists() && docSnap.data().bio) {
-        bioEl.value = docSnap.data().bio;
-      }
+      const reelSnap = await getDocs(query(collection(db, "reels"), where("uid", "==", user.uid)));
+      reelSnap.forEach(doc => {
+        const data = doc.data();
+        postContainer.innerHTML += `<div class="grid-item"><video src="${data.videoUrl}" controls></video></div>`;
+        count++;
+      });
+
+      document.getElementById("postCount").innerText = `Posts: ${count}`;
     });
 
-    // Save bio to Firestore
-    window.saveBio = async () => {
-      if (!currentUID) return;
-      const bioText = bioEl.value.trim();
-      const bioRef = doc(fs, "users", currentUID);
-      await setDoc(bioRef, { bio: bioText }, { merge: true });
-      alert("Bio updated successfully!");
+    window.toggleMenu = () => {
+      const menu = document.getElementById("dropdownMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    };
+
+    window.logout = () => {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    };
+
+    window.toggleDarkMode = () => {
+      document.body.classList.toggle("dark-theme");
+    };
+
+    window.openSavedPosts = () => {
+      window.location.href = "saved-posts.html";
     };
   </script>
-
 </body>
 </html>
